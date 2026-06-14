@@ -9,7 +9,7 @@ const { init } = require('./db');
 const { syncConfiguredUsers } = require('./auth_config');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 6767;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
