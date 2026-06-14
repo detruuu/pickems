@@ -33,6 +33,9 @@ router.post('/login', async (req, res, next) => {
     }
 
     req.session.user = { id: user.id, email: user.email, login: user.email, name: user.name, role: user.role };
+    if (req.body.remember === 'yes') {
+      req.session.cookie.maxAge = 180 * 24 * 60 * 60 * 1000; // 180 days in milliseconds
+    }
     res.redirect('/');
   } catch (err) { next(err); }
 });

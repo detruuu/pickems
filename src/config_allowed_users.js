@@ -5,20 +5,20 @@
 
 module.exports = [
   {
-    login: 'TODO_ADMIN_LOGIN',
-    password: 'TODO_ADMIN_HASLO_MIN_8_ZNAKOW',
+    login: 'julek',
+    password: 'lewanDihski67',
     name: 'Administrator',
     role: 'admin'
   },
   {
-    login: 'TODO_USER_1_LOGIN',
-    password: 'TODO_USER_1_HASLO_MIN_8_ZNAKOW',
+    login: 'oliwia',
+    password: 'raphinA2137',
     name: 'Użytkownik 1',
     role: 'user'
   },
   {
-    login: 'TODO_USER_2_LOGIN',
-    password: 'TODO_USER_2_HASLO_MIN_8_ZNAKOW',
+    login: 'jula',
+    password: 'ardaG00ner',
     name: 'Użytkownik 2',
     role: 'user'
   }

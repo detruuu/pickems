@@ -1,7 +1,13 @@
+const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
-const dbPath = path.join(__dirname, '..', 'data', 'pickems.sqlite');
+const dataDir = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'pickems.sqlite');
 const db = new sqlite3.Database(dbPath);
 
 function run(sql, params = []) {

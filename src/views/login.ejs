@@ -5,6 +5,9 @@
   <form method="post" action="/login" class="form">
     <label>Login <input name="login" required autocomplete="username"></label>
     <label>Hasło <input name="password" type="password" required autocomplete="current-password"></label>
+    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+      <input type="checkbox" name="remember" value="yes" style="width: auto; margin: 0;"> Zapamiętaj mnie na 180 dni
+    </label>
     <button type="submit">Zaloguj</button>
   </form>
 </section>
