@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+<h1>Panel admina</h1>
+<p class="muted">Wpisuj realne wyniki i blokuj mecze po rozpoczęciu.</p>
+<section class="card">
+  <table>
+    <thead><tr><th>Grupa</th><th>Mecz</th><th>Wynik</th><th>Blokada</th><th></th></tr></thead>
+    <tbody>
+    <% matches.forEach(match => { %>
+      <tr>
+        <form method="post" action="/admin/matches/<%= match.id %>/result">
+          <td><%= match.group_name %></td>
+          <td><%= match.home_team %> - <%= match.away_team %></td>
+          <td class="admin-score">
+            <input type="number" min="0" name="home_score" value="<%= match.home_score ?? '' %>"> :
+            <input type="number" min="0" name="away_score" value="<%= match.away_score ?? '' %>">
+          </td>
+          <td><input type="checkbox" name="locked" <%= match.locked ? 'checked' : '' %>></td>
+          <td><button>Zapisz</button></td>
+        </form>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</section>
+<%- include('partials/footer') %>

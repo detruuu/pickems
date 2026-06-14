@@ -1,0 +1,85 @@
+<%- include('partials/header') %>
+<h1>Drabinka fazy pucharowej MŚ 2026</h1>
+<p class="muted">
+  Drabinka jest liczona z Twoich typów fazy grupowej. Po uzupełnieniu wszystkich 72 meczów grupowych aplikacja podstawia drużyny do 1/16 finału. Po zapisaniu wyników danej rundy zwycięzcy automatycznie przechodzą dalej.
+</p>
+
+<% if (!complete) { %>
+  <section class="card">
+    <h2>Najpierw uzupełnij fazę grupową</h2>
+    <p>Uzupełniono <strong><%= completedPicks %></strong> z <strong><%= totalGroupMatches %></strong> typów grupowych.</p>
+    <p class="muted">Gdy wpiszesz wszystkie wyniki grup, tutaj pojawią się konkretne pary 1/16 finału.</p>
+    <a class="primary" href="/">Wróć do typowania grup</a>
+  </section>
+<% } else { %>
+  <% if (champion) { %>
+    <section class="card champion-card">
+      <h2>Twój mistrz świata</h2>
+      <p class="champion"><%= champion.flag || '' %> <%= champion.name %></p>
+    </section>
+  <% } %>
+
+  <section class="card">
+    <h2>Tabele grup według Twoich typów</h2>
+    <div class="tables-grid">
+      <% Object.keys(tables).forEach((groupName) => { %>
+        <div class="mini-table">
+          <h3>Grupa <%= groupName %></h3>
+          <table>
+            <thead><tr><th>#</th><th>Drużyna</th><th>PKT</th><th>BR</th></tr></thead>
+            <tbody>
+              <% tables[groupName].forEach((team) => { %>
+                <tr>
+                  <td><%= team.rank %></td>
+                  <td><%= team.flag || '' %> <%= team.name %></td>
+                  <td><%= team.points %></td>
+                  <td><%= team.gf %>:<%= team.ga %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+
+  <form method="post" action="/bracket/save-all">
+    <% Object.keys(rounds).forEach((roundName) => { %>
+      <section class="card">
+        <h2><%= roundName %></h2>
+        <div class="match-list">
+          <% rounds[roundName].forEach((match) => { %>
+            <% const playable = match.homeTeam && match.awayTeam; %>
+            <div class="match-row">
+              <div>
+                <strong>M<%= match.no %></strong> ·
+                <% if (playable) { %>
+                  <strong><%= match.homeTeam.flag || '' %> <%= match.homeTeam.name %></strong>
+                  vs
+                  <strong><%= match.awayTeam.flag || '' %> <%= match.awayTeam.name %></strong>
+                <% } else { %>
+                  <span class="muted"><%= match.homeLabel %> vs <%= match.awayLabel %></span>
+                <% } %>
+                <div class="muted small">
+                  Sloty: <%= match.homeLabel %> vs <%= match.awayLabel %>
+                  <% if (match.pick) { %> · zapisany typ: <%= match.pick.home_score %>:<%= match.pick.away_score %><% } %>
+                </div>
+              </div>
+              <div class="score-inputs">
+                <input type="number" min="0" name="home_<%= match.no %>" value="<%= match.pick ? match.pick.home_score : '' %>" <%= playable ? '' : 'disabled' %> placeholder="0">
+                <span>:</span>
+                <input type="number" min="0" name="away_<%= match.no %>" value="<%= match.pick ? match.pick.away_score : '' %>" <%= playable ? '' : 'disabled' %> placeholder="0">
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+    <% }) %>
+    <section class="save-bar">
+      <button class="primary" type="submit">Zapisz rundę / drabinkę</button>
+      <span class="muted small">Po zapisie aplikacja przeliczy kolejne pary. Jeśli pojawi się następna runda, uzupełnij ją i zapisz ponownie.</span>
+    </section>
+  </form>
+<% } %>
+
+<%- include('partials/footer') %>

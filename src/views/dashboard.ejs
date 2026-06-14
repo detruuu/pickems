@@ -1,0 +1,37 @@
+<%- include('partials/header') %>
+<h1>Twoje typy</h1>
+<p class="muted">Wpisz przewidywane wyniki meczów. Zmiany zapisują się dopiero po kliknięciu przycisku „Zapisz pickemy” na dole strony.</p>
+<form method="post" action="/picks/save-all">
+  <% for (const groupName of Object.keys(groups)) { %>
+    <section class="card">
+      <h2>Grupa <%= groupName %></h2>
+      <div class="match-list">
+      <% groups[groupName].forEach(match => { %>
+        <div class="match-row">
+          <div>
+            <strong><%= match.home_flag || '' %> <%= match.home_team %></strong> vs <strong><%= match.away_flag || '' %> <%= match.away_team %></strong>
+            <div class="muted small">
+              <% if (match.home_score !== null && match.away_score !== null) { %>
+                Wynik rzeczywisty: <%= match.home_score %>:<%= match.away_score %>
+              <% } else { %>
+                Wynik rzeczywisty jeszcze nie wpisany
+              <% } %>
+              <% if (match.locked) { %> · zablokowany<% } %>
+            </div>
+          </div>
+          <div class="score-inputs">
+            <input type="number" min="0" name="home_<%= match.id %>" value="<%= match.pick_home_score ?? '' %>" <%= match.locked ? 'disabled' : '' %> placeholder="0">
+            <span>:</span>
+            <input type="number" min="0" name="away_<%= match.id %>" value="<%= match.pick_away_score ?? '' %>" <%= match.locked ? 'disabled' : '' %> placeholder="0">
+          </div>
+        </div>
+      <% }) %>
+      </div>
+    </section>
+  <% } %>
+  <section class="save-bar">
+    <button class="primary" type="submit">Zapisz pickemy</button>
+    <span class="muted small">Dopiero ten przycisk zatwierdza zmiany w bazie.</span>
+  </section>
+</form>
+<%- include('partials/footer') %>

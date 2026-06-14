@@ -1,0 +1,19 @@
+<%- include('partials/header') %>
+<section class="card">
+  <h1>Ranking</h1>
+  <table>
+    <thead><tr><th>#</th><th>Użytkownik</th><th>Punkty</th><th>Dokładne wyniki</th><th>Rezultaty</th></tr></thead>
+    <tbody>
+      <% rows.forEach((row, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= row.name %></td>
+          <td><strong><%= row.total %></strong></td>
+          <td><%= row.exact %></td>
+          <td><%= row.outcome %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+<%- include('partials/footer') %>
