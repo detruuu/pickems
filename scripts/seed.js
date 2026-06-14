@@ -4,92 +4,92 @@ const { syncConfiguredUsers } = require('../src/auth_config');
 
 const groups = {
   A: [
-    { name: 'Mexico', flag: '🇲🇽' },
-    { name: 'Korea Republic', flag: '🇰🇷' },
-    { name: 'South Africa', flag: '🇿🇦' },
-    { name: 'Czechia', flag: '🇨🇿' }
+    { name: 'Meksyk', flag: 'mx' },
+    { name: 'Korea Południowa', flag: 'kr' },
+    { name: 'RPA', flag: 'za' },
+    { name: 'Czechy', flag: 'cz' }
   ],
   B: [
-    { name: 'Canada', flag: '🇨🇦' },
-    { name: 'Switzerland', flag: '🇨🇭' },
-    { name: 'Qatar', flag: '🇶🇦' },
-    { name: 'Bosnia and Herzegovina', flag: '🇧🇦' }
+    { name: 'Kanada', flag: 'ca' },
+    { name: 'Szwajcaria', flag: 'ch' },
+    { name: 'Katar', flag: 'qa' },
+    { name: 'Bośnia i Hercegowina', flag: 'ba' }
   ],
   C: [
-    { name: 'Brazil', flag: '🇧🇷' },
-    { name: 'Morocco', flag: '🇲🇦' },
-    { name: 'Scotland', flag: '🏴' },
-    { name: 'Haiti', flag: '🇭🇹' }
+    { name: 'Brazylia', flag: 'br' },
+    { name: 'Maroko', flag: 'ma' },
+    { name: 'Szkocja', flag: 'gb-sct' },
+    { name: 'Haiti', flag: 'ht' }
   ],
   D: [
-    { name: 'USA', flag: '🇺🇸' },
-    { name: 'Paraguay', flag: '🇵🇾' },
-    { name: 'Australia', flag: '🇦🇺' },
-    { name: 'Türkiye', flag: '🇹🇷' }
+    { name: 'USA', flag: 'us' },
+    { name: 'Paragwaj', flag: 'py' },
+    { name: 'Australia', flag: 'au' },
+    { name: 'Turcja', flag: 'tr' }
   ],
   E: [
-    { name: 'Germany', flag: '🇩🇪' },
-    { name: 'Ecuador', flag: '🇪🇨' },
-    { name: "Côte d'Ivoire", flag: '🇨🇮' },
-    { name: 'Curaçao', flag: '🇨🇼' }
+    { name: 'Niemcy', flag: 'de' },
+    { name: 'Ekwador', flag: 'ec' },
+    { name: "Wybrzeże Kości Słoniowej", flag: 'ci' },
+    { name: 'Curaçao', flag: 'cw' }
   ],
   F: [
-    { name: 'Netherlands', flag: '🇳🇱' },
-    { name: 'Japan', flag: '🇯🇵' },
-    { name: 'Tunisia', flag: '🇹🇳' },
-    { name: 'Sweden', flag: '🇸🇪' }
+    { name: 'Holandia', flag: 'nl' },
+    { name: 'Japonia', flag: 'jp' },
+    { name: 'Tunezja', flag: 'tn' },
+    { name: 'Szwecja', flag: 'se' }
   ],
   G: [
-    { name: 'Belgium', flag: '🇧🇪' },
-    { name: 'IR Iran', flag: '🇮🇷' },
-    { name: 'Egypt', flag: '🇪🇬' },
-    { name: 'New Zealand', flag: '🇳🇿' }
+    { name: 'Belgia', flag: 'be' },
+    { name: 'Iran', flag: 'ir' },
+    { name: 'Egipt', flag: 'eg' },
+    { name: 'Nowa Zelandia', flag: 'nz' }
   ],
   H: [
-    { name: 'Spain', flag: '🇪🇸' },
-    { name: 'Uruguay', flag: '🇺🇾' },
-    { name: 'Saudi Arabia', flag: '🇸🇦' },
-    { name: 'Cabo Verde', flag: '🇨🇻' }
+    { name: 'Hiszpania', flag: 'es' },
+    { name: 'Urugwaj', flag: 'uy' },
+    { name: 'Arabia Saudyjska', flag: 'sa' },
+    { name: 'Wyspy Zielonego Przylądka', flag: 'cv' }
   ],
   I: [
-    { name: 'France', flag: '🇫🇷' },
-    { name: 'Senegal', flag: '🇸🇳' },
-    { name: 'Norway', flag: '🇳🇴' },
-    { name: 'Iraq', flag: '🇮🇶' }
+    { name: 'Francja', flag: 'fr' },
+    { name: 'Senegal', flag: 'sn' },
+    { name: 'Norwegia', flag: 'no' },
+    { name: 'Irak', flag: 'iq' }
   ],
   J: [
-    { name: 'Argentina', flag: '🇦🇷' },
-    { name: 'Austria', flag: '🇦🇹' },
-    { name: 'Algeria', flag: '🇩🇿' },
-    { name: 'Jordan', flag: '🇯🇴' }
+    { name: 'Argentyna', flag: 'ar' },
+    { name: 'Austria', flag: 'at' },
+    { name: 'Algieria', flag: 'dz' },
+    { name: 'Jordania', flag: 'jo' }
   ],
   K: [
-    { name: 'Portugal', flag: '🇵🇹' },
-    { name: 'Colombia', flag: '🇨🇴' },
-    { name: 'Uzbekistan', flag: '🇺🇿' },
-    { name: 'Congo DR', flag: '🇨🇩' }
+    { name: 'Portugalia', flag: 'pt' },
+    { name: 'Kolumbia', flag: 'co' },
+    { name: 'Uzbekistan', flag: 'uz' },
+    { name: 'DR Konga', flag: 'cd' }
   ],
   L: [
-    { name: 'England', flag: '🏴' },
-    { name: 'Croatia', flag: '🇭🇷' },
-    { name: 'Panama', flag: '🇵🇦' },
-    { name: 'Ghana', flag: '🇬🇭' }
+    { name: 'Anglia', flag: 'gb-eng' },
+    { name: 'Chorwacja', flag: 'hr' },
+    { name: 'Panama', flag: 'pa' },
+    { name: 'Ghana', flag: 'gh' }
   ]
 };
 
 const fixtures = [
-  ['A','Mexico','South Africa','2026-06-11 00:00'], ['A','Korea Republic','Czechia','2026-06-12 00:00'], ['A','Czechia','South Africa','2026-06-18 00:00'], ['A','Mexico','Korea Republic','2026-06-18 00:00'], ['A','Czechia','Mexico','2026-06-24 00:00'], ['A','South Africa','Korea Republic','2026-06-24 00:00'],
-  ['B','Canada','Bosnia and Herzegovina','2026-06-12 00:00'], ['B','Qatar','Switzerland','2026-06-13 00:00'], ['B','Switzerland','Bosnia and Herzegovina','2026-06-18 00:00'], ['B','Canada','Qatar','2026-06-18 00:00'], ['B','Switzerland','Canada','2026-06-24 00:00'], ['B','Bosnia and Herzegovina','Qatar','2026-06-24 00:00'],
-  ['C','Brazil','Morocco','2026-06-13 00:00'], ['C','Haiti','Scotland','2026-06-14 00:00'], ['C','Brazil','Haiti','2026-06-19 00:00'], ['C','Scotland','Morocco','2026-06-19 00:00'], ['C','Scotland','Brazil','2026-06-24 00:00'], ['C','Morocco','Haiti','2026-06-24 00:00'],
-  ['D','USA','Paraguay','2026-06-13 00:00'], ['D','Australia','Türkiye','2026-06-14 00:00'], ['D','USA','Australia','2026-06-19 00:00'], ['D','Türkiye','Paraguay','2026-06-19 00:00'], ['D','Türkiye','USA','2026-06-25 00:00'], ['D','Paraguay','Australia','2026-06-25 00:00'],
-  ['E','Germany','Curaçao','2026-06-14 00:00'], ['E',"Côte d'Ivoire",'Ecuador','2026-06-15 00:00'], ['E','Germany',"Côte d'Ivoire",'2026-06-20 00:00'], ['E','Ecuador','Curaçao','2026-06-20 00:00'], ['E','Curaçao',"Côte d'Ivoire",'2026-06-25 00:00'], ['E','Ecuador','Germany','2026-06-25 00:00'],
-  ['F','Netherlands','Japan','2026-06-14 00:00'], ['F','Sweden','Tunisia','2026-06-15 00:00'], ['F','Netherlands','Sweden','2026-06-20 00:00'], ['F','Tunisia','Japan','2026-06-20 00:00'], ['F','Tunisia','Netherlands','2026-06-25 00:00'], ['F','Japan','Sweden','2026-06-25 00:00'],
-  ['G','Belgium','Egypt','2026-06-15 00:00'], ['G','IR Iran','New Zealand','2026-06-16 00:00'], ['G','Belgium','IR Iran','2026-06-21 00:00'], ['G','New Zealand','Egypt','2026-06-21 00:00'], ['G','New Zealand','Belgium','2026-06-26 00:00'], ['G','Egypt','IR Iran','2026-06-26 00:00'],
-  ['H','Spain','Cabo Verde','2026-06-15 00:00'], ['H','Saudi Arabia','Uruguay','2026-06-15 00:00'], ['H','Uruguay','Cabo Verde','2026-06-21 00:00'], ['H','Spain','Saudi Arabia','2026-06-21 00:00'], ['H','Cabo Verde','Saudi Arabia','2026-06-26 00:00'], ['H','Uruguay','Spain','2026-06-26 00:00'],
-  ['I','France','Senegal','2026-06-16 00:00'], ['I','Iraq','Norway','2026-06-16 00:00'], ['I','Norway','Senegal','2026-06-22 00:00'], ['I','France','Iraq','2026-06-22 00:00'], ['I','Norway','France','2026-06-26 00:00'], ['I','Senegal','Iraq','2026-06-26 00:00'],
-  ['J','Argentina','Algeria','2026-06-17 00:00'], ['J','Austria','Jordan','2026-06-17 00:00'], ['J','Argentina','Austria','2026-06-22 00:00'], ['J','Jordan','Algeria','2026-06-22 00:00'], ['J','Algeria','Austria','2026-06-27 00:00'], ['J','Jordan','Argentina','2026-06-27 00:00'],
-  ['K','Portugal','Congo DR','2026-06-17 00:00'], ['K','Uzbekistan','Colombia','2026-06-17 00:00'], ['K','Portugal','Uzbekistan','2026-06-23 00:00'], ['K','Colombia','Congo DR','2026-06-23 00:00'], ['K','Colombia','Portugal','2026-06-27 00:00'], ['K','Congo DR','Uzbekistan','2026-06-27 00:00'],
-  ['L','England','Croatia','2026-06-17 00:00'], ['L','Ghana','Panama','2026-06-17 00:00'], ['L','England','Ghana','2026-06-23 00:00'], ['L','Panama','Croatia','2026-06-23 00:00'], ['L','Panama','England','2026-06-27 00:00'], ['L','Croatia','Ghana','2026-06-27 00:00']
+  ['A','Meksyk','RPA','2026-06-11 00:00'], ['A','Korea Południowa','Czechy','2026-06-12 00:00'], ['A','Czechy','RPA','2026-06-18 00:00'], ['A','Meksyk','Korea Południowa','2026-06-18 00:00'], ['A','Czechy','Meksyk','2026-06-24 00:00'], ['A','RPA','Korea Południowa','2026-06-24 00:00'],
+  ['B','Kanada','Bośnia i Hercegowina','2026-06-12 00:00'], ['B','Katar','Szwajcaria','2026-06-13 00:00'], ['B','Szwajcaria','Bośnia i Hercegowina','2026-06-18 00:00'], ['B','Kanada','Katar','2026-06-18 00:00'], ['B','Szwajcaria','Kanada','2026-06-24 00:00'], ['B','Bośnia i Hercegowina','Katar','2026-06-24 00:00'],
+  ['C','Brazylia','Maroko','2026-06-13 00:00'], ['C','Haiti','Szkocja','2026-06-14 00:00'], ['C','Brazylia','Haiti','2026-06-19 00:00'], ['C','Szkocja','Maroko','2026-06-19 00:00'], ['C','Szkocja','Brazylia','2026-06-24 00:00'], ['C','Maroko','Haiti','2026-06-24 00:00'],
+  ['D','USA','Paragwaj','2026-06-13 00:00'], ['D','Australia','Turcja','2026-06-14 00:00'], ['D','USA','Australia','2026-06-19 00:00'], ['D','Turcja','Paragwaj','2026-06-19 00:00'], ['D','Turcja','USA','2026-06-25 00:00'], ['D','Paragwaj','Australia','2026-06-25 00:00'],
+  ['E','Niemcy','Curaçao','2026-06-14 00:00'], ['E',"Wybrzeże Kości Słoniowej",'Ekwador','2026-06-15 00:00'], ['E','Niemcy',"Wybrzeże Kości Słoniowej",'2026-06-20 00:00'], ['E','Ekwador','Curaçao','2026-06-20 00:00'], ['E','Curaçao',"Wybrzeże Kości Słoniowej",'2026-06-25 00:00'], ['E','Ekwador','Niemcy','2026-06-25 00:00'],
+  ['F','Holandia','Japonia','2026-06-14 00:00'], ['F','Szwecja','Tunezja','2026-06-15 00:00'], ['F','Holandia','Szwecja','2026-06-20 00:00'], ['F','Tunezja','Japonia','2026-06-20 00:00'], ['F','Tunezja','Holandia','2026-06-25 00:00'], ['F','Japonia','Szwecja','2026-06-25 00:00'],
+  ['G','Belgia','Egipt','2026-06-15 00:00'], ['G','Iran','Nowa Zelandia','2026-06-16 00:00'], ['G','Belgia','Iran','2026-06-21 00:00'], ['G','Nowa Zelandia','Egipt','2026-06-21 00:00'], ['G','Nowa Zelandia','Belgia','2026-06-26 00:00'], ['G','Egipt','Iran','2026-06-26 00:00'],
+  ['H','Hiszpania','Wyspy Zielonego Przylądka','2026-06-15 00:00'], ['H','Arabia Saudyjska','Urugwaj','2026-06-15 00:00'], ['H','Urugwaj','Wyspy Zielonego Przylądka','2026-06-21 00:00'], ['H','Hiszpania','Arabia Saudyjska','2026-06-21 00:00'], ['H','Wyspy Zielonego Przylądka','Arabia Saudyjska','2026-06-26 00:00'], ['H','Urugwaj','Hiszpania','2026-06-26 00:00'],
+  ['I','Francja','Senegal','2026-06-16 00:00'], ['I','Irak','Norwegia','2026-06-16 00:00'], ['I','Norwegia','Senegal','2026-06-22 00:00'], ['I','Francja','Irak','2026-06-22 00:00'], ['I','Norwegia','Francja','2026-06-26 00:00'], ['I','Senegal','Irak','2026-06-26 00:00'],
+  ['J','Argentyna','Algieria','2026-06-17 00:00'], ['J','Austria','Jordania','2026-06-17 00:00'], ['J','Argentyna','Austria','2026-06-22 00:00'], ['J','Jordania','Algieria','2026-06-22 00:00'], ['J','Algieria','Austria','2026-06-27 00:00'], ['J','Jordania','Argentyna','2026-06-27 00:00'],
+  ['K','Portugalia','DR Konga','2026-06-17 00:00'], ['K','Uzbekistan','Kolumbia','2026-06-17 00:00'], ['K','Portugalia','Uzbekistan','2026-06-23 00:00'], ['K','Kolumbia','DR Konga','2026-06-23 00:00'], ['K','Kolumbia','Portugalia','2026-06-27 00:00'], ['K','DR Konga','Uzbekistan','2026-06-27 00:00'],
+  ['L','Anglia','Chorwacja','2026-06-17 00:00'], ['L','Ghana','Panama','2026-06-17 00:00'], ['L','Anglia','Ghana','2026-06-23 00:00'], ['L','Panama','Chorwacja','2026-06-23 00:00'], ['L','Panama','Anglia','2026-06-27 00:00'], ['L','Chorwacja','Ghana','2026-06-27 00:00']
 ];
 
 async function seed() {

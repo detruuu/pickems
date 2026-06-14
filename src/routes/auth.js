@@ -5,12 +5,12 @@ const { normalizeLogin, isConfiguredLogin } = require('../auth_config');
 const router = express.Router();
 
 router.get('/register', (req, res) => {
-  req.session.flash = 'Rejestracja jest wyłączona. Dostęp mają tylko konta wpisane przez administratora w kodzie.';
+  req.session.flash = 'What the sigma';
   res.redirect('/login');
 });
 
 router.post('/register', (req, res) => {
-  req.session.flash = 'Rejestracja jest wyłączona. Dostęp mają tylko konta wpisane przez administratora w kodzie.';
+  req.session.flash = 'What the sigma';
   res.redirect('/login');
 });
 
@@ -22,13 +22,13 @@ router.post('/login', async (req, res, next) => {
     const password = req.body.password || '';
 
     if (!isConfiguredLogin(login)) {
-      req.session.flash = 'Ten login nie jest na liście dopuszczonych użytkowników.';
+      req.session.flash = 'zle dane bratku';
       return res.redirect('/login');
     }
 
     const user = await get('SELECT * FROM users WHERE email = ?', [login]);
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      req.session.flash = 'Nieprawidłowy login lub hasło.';
+      req.session.flash = 'zle dane bratku';
       return res.redirect('/login');
     }
 

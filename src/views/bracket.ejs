@@ -15,7 +15,12 @@
   <% if (champion) { %>
     <section class="card champion-card">
       <h2>Twój mistrz świata</h2>
-      <p class="champion"><%= champion.flag || '' %> <%= champion.name %></p>
+      <p class="champion" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <% if (champion.flag) { %>
+          <img src="https://flagcdn.com/w80/<%= champion.flag %>.png" style="height: auto; width: 44px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" alt="">
+        <% } %>
+        <%= champion.name %>
+      </p>
     </section>
   <% } %>
 
@@ -31,7 +36,12 @@
               <% tables[groupName].forEach((team) => { %>
                 <tr>
                   <td><%= team.rank %></td>
-                  <td><%= team.flag || '' %> <%= team.name %></td>
+                  <td>
+                    <% if (team.flag) { %>
+                      <img src="https://flagcdn.com/w20/<%= team.flag %>.png" style="vertical-align: middle; margin-right: 4px; border: 1px solid #e5e7eb; border-radius: 2px;" alt="">
+                    <% } %>
+                    <%= team.name %>
+                  </td>
                   <td><%= team.points %></td>
                   <td><%= team.gf %>:<%= team.ga %></td>
                 </tr>
@@ -54,9 +64,19 @@
               <div>
                 <strong>M<%= match.no %></strong> ·
                 <% if (playable) { %>
-                  <strong><%= match.homeTeam.flag || '' %> <%= match.homeTeam.name %></strong>
+                  <strong>
+                    <% if (match.homeTeam.flag) { %>
+                      <img src="https://flagcdn.com/w20/<%= match.homeTeam.flag %>.png" style="vertical-align: middle; margin-right: 4px; border: 1px solid #e5e7eb; border-radius: 2px;" alt="">
+                    <% } %>
+                    <%= match.homeTeam.name %>
+                  </strong>
                   vs
-                  <strong><%= match.awayTeam.flag || '' %> <%= match.awayTeam.name %></strong>
+                  <strong>
+                    <% if (match.awayTeam.flag) { %>
+                      <img src="https://flagcdn.com/w20/<%= match.awayTeam.flag %>.png" style="vertical-align: middle; margin-right: 4px; border: 1px solid #e5e7eb; border-radius: 2px;" alt="">
+                    <% } %>
+                    <%= match.awayTeam.name %>
+                  </strong>
                 <% } else { %>
                   <span class="muted"><%= match.homeLabel %> vs <%= match.awayLabel %></span>
                 <% } %>

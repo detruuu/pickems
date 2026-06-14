@@ -7,22 +7,49 @@
       <h2>Grupa <%= groupName %></h2>
       <div class="match-list">
       <% groups[groupName].forEach(match => { %>
-        <div class="match-row">
-          <div>
-            <strong><%= match.home_flag || '' %> <%= match.home_team %></strong> vs <strong><%= match.away_flag || '' %> <%= match.away_team %></strong>
-            <div class="muted small">
-              <% if (match.home_score !== null && match.away_score !== null) { %>
-                Wynik rzeczywisty: <%= match.home_score %>:<%= match.away_score %>
-              <% } else { %>
-                Wynik rzeczywisty jeszcze nie wpisany
-              <% } %>
-              <% if (match.locked) { %> · zablokowany<% } %>
-            </div>
+        <div class="match-row" style="position: relative; overflow: hidden; display: flex !important; flex-direction: row !important; align-items: center; justify-content: space-between; padding: 14px 18px; margin-bottom: 8px;">
+          <!-- Tło z flagami krajów -->
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1;">
+            <% if (match.home_flag) { %>
+              <img src="https://flagcdn.com/w160/<%= match.home_flag %>.png" style="height: 100%; width: auto; opacity: 0.08; pointer-events: none;" alt="">
+            <% } else { %>
+              <div></div>
+            <% } %>
+            <% if (match.away_flag) { %>
+              <img src="https://flagcdn.com/w160/<%= match.away_flag %>.png" style="height: 100%; width: auto; opacity: 0.08; pointer-events: none;" alt="">
+            <% } else { %>
+              <div></div>
+            <% } %>
           </div>
-          <div class="score-inputs">
-            <input type="number" min="0" name="home_<%= match.id %>" value="<%= match.pick_home_score ?? '' %>" <%= match.locked ? 'disabled' : '' %> placeholder="0">
-            <span>:</span>
-            <input type="number" min="0" name="away_<%= match.id %>" value="<%= match.pick_away_score ?? '' %>" <%= match.locked ? 'disabled' : '' %> placeholder="0">
+
+          <!-- Zawartość pojedynku (nad tłem) -->
+          <div style="display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; z-index: 2; position: relative;">
+            <!-- Drużyna gospodarzy (lewa) -->
+            <div style="flex: 1; text-align: right; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <%= match.home_team %>
+            </div>
+
+            <!-- Panel wprowadzania wyników (środek) -->
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 140px; flex-shrink: 0;">
+              <div style="display: flex; align-items: center; gap: 5px; justify-content: center;">
+                <input type="number" min="0" name="home_<%= match.id %>" value="<%= match.pick_home_score ?? '' %>" <%= match.locked ? 'disabled' : '' %> placeholder="0" style="width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <span style="font-weight: bold; font-size: 15px; color: #475569;">:</span>
+                <input type="number" min="0" name="away_<%= match.id %>" value="<%= match.pick_away_score ?? '' %>" <%= match.locked ? 'disabled' : '' %> placeholder="0" style="width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px;">
+              </div>
+              <div class="muted" style="font-size: 10px; font-weight: 500; color: #64748b;">
+                <% if (match.home_score !== null && match.away_score !== null) { %>
+                  Wynik: <%= match.home_score %>:<%= match.away_score %>
+                <% } else { %>
+                  niezagrany
+                <% } %>
+                <% if (match.locked) { %> · 🔒<% } %>
+              </div>
+            </div>
+
+            <!-- Drużyna gości (prawa) -->
+            <div style="flex: 1; text-align: left; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <%= match.away_team %>
+            </div>
           </div>
         </div>
       <% }) %>

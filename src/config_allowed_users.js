@@ -7,19 +7,19 @@ module.exports = [
   {
     login: 'julek',
     password: 'lewanDihski67',
-    name: 'Administrator',
+    name: 'julek',
     role: 'admin'
   },
   {
-    login: 'oliwia',
+    login: 'oliwka',
     password: 'raphinA2137',
-    name: 'Użytkownik 1',
+    name: 'oliwka',
     role: 'user'
   },
   {
     login: 'jula',
     password: 'ardaG00ner',
-    name: 'Użytkownik 2',
+    name: 'jula',
     role: 'user'
   }
 ];
