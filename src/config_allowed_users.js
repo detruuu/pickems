@@ -19,7 +19,7 @@ module.exports = [
   {
     login: 'jula',
     password: 'ardaG00ner',
-    name: 'jula',
+    name: 'jula <3 arda',
     role: 'user'
   }
 ];

@@ -1,7 +1,7 @@
 const express = require('express');
 const { all, get, run, pickPoints } = require('../db');
 const { requireAuth } = require('../middleware');
-const { buildBracket } = require('../bracket_logic');
+const { buildBracket, calculateActualGroupTables, buildOfficialBracket } = require('../bracket_logic');
 const router = express.Router();
 
 async function getMatchesWithPicks(userId) {
@@ -22,7 +22,18 @@ router.get('/', requireAuth, async (req, res, next) => {
       groups[match.group_name] ||= [];
       groups[match.group_name].push(match);
     }
-    res.render('dashboard', { groups });
+    res.render('dashboard', { groups, pickPoints });
+  } catch (err) { next(err); }
+});
+
+router.get('/groups', requireAuth, async (req, res, next) => {
+  try {
+    const predicted = await buildBracket(req.session.user.id);
+    const actual = await calculateActualGroupTables();
+    res.render('groups', {
+      predictedTables: predicted.tables,
+      actualTables: actual.tables
+    });
   } catch (err) { next(err); }
 });
 
@@ -42,7 +53,7 @@ router.post('/picks/save-all', requireAuth, async (req, res, next) => {
       const awayScore = Number(awayRaw);
       if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore) || homeScore < 0 || awayScore < 0) {
         req.session.flash = 'Wszystkie wpisane wyniki muszą być liczbami całkowitymi nieujemnymi. Nic nie zapisano.';
-        return res.redirect('/');
+        return res.redirect("/ranking");
       }
       submitted.push({ matchId: match.id, homeScore, awayScore });
     }
@@ -62,7 +73,7 @@ router.post('/picks/save-all', requireAuth, async (req, res, next) => {
     req.session.flash = submitted.length > 0
       ? `Zapisano ${submitted.length} typów grupowych. Drabinka została przeliczona, więc wcześniejsze typy fazy pucharowej zostały wyczyszczone.`
       : 'Nie było nowych typów do zapisania.';
-    res.redirect('/');
+    res.redirect("/ranking");
   } catch (err) { next(err); }
 });
 
@@ -75,11 +86,11 @@ router.post('/picks/:matchId', requireAuth, async (req, res, next) => {
     if (!match) return res.status(404).render('error', { message: 'Mecz nie istnieje.' });
     if (match.locked) {
       req.session.flash = 'Typowanie dla tego meczu jest już zablokowane.';
-      return res.redirect('/');
+      return res.redirect("/ranking");
     }
     if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore) || homeScore < 0 || awayScore < 0) {
       req.session.flash = 'Wynik musi być liczbą całkowitą nieujemną.';
-      return res.redirect('/');
+      return res.redirect("/ranking");
     }
     await run(`INSERT INTO picks (user_id, match_id, home_score, away_score, updated_at)
       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -89,7 +100,7 @@ router.post('/picks/:matchId', requireAuth, async (req, res, next) => {
       updated_at = CURRENT_TIMESTAMP`, [req.session.user.id, matchId, homeScore, awayScore]);
     await run('DELETE FROM knockout_picks WHERE user_id = ?', [req.session.user.id]);
     req.session.flash = 'Typ zapisany. Drabinka została przeliczona, więc wcześniejsze typy fazy pucharowej tego użytkownika zostały wyczyszczone.';
-    res.redirect('/');
+    res.redirect("/ranking");
   } catch (err) { next(err); }
 });
 
@@ -205,6 +216,99 @@ router.get('/ranking', requireAuth, async (req, res, next) => {
     }
     rows.sort((a, b) => b.total - a.total || b.exact - a.exact || a.name.localeCompare(b.name));
     res.render('ranking', { rows });
+  } catch (err) { next(err); }
+});
+
+
+router.post("/profile/update-name", requireAuth, async (req, res, next) => {
+  try {
+    const name = String(req.body.name || "").trim();
+    if (!name) {
+      req.session.flash = "Nazwa nie może być pusta.";
+      return res.redirect("/ranking");
+    }
+    await run("UPDATE users SET name = ? WHERE id = ?", [name, req.session.user.id]);
+    req.session.user.name = name;
+    req.session.flash = "Pomyślnie zaktualizowano nazwę wyświetlaną.";
+    res.redirect("/ranking");
+  } catch (err) { next(err); }
+});
+
+
+router.get("/user/:userId/picks", requireAuth, async (req, res, next) => {
+  try {
+    const targetUserId = Number(req.params.userId);
+    const targetUser = await get("SELECT id, name FROM users WHERE id = ?", [targetUserId]);
+    if (!targetUser) return res.status(404).render("error", { message: "U2ytkownik nie istnieje." });
+    const matches = await getMatchesWithPicks(targetUserId);
+    const groups = {};
+    for (const match of matches) {
+      groups[match.group_name] ||= [];
+      groups[match.group_name].push(match);
+    }
+    res.render("dashboard", { groups, pickPoints, viewingUser: targetUser });
+  } catch (err) { next(err); }
+});
+
+router.get("/user/:userId/bracket", requireAuth, async (req, res, next) => {
+  try {
+    const targetUserId = Number(req.params.userId);
+    const targetUser = await get("SELECT id, name FROM users WHERE id = ?", [targetUserId]);
+    if (!targetUser) return res.status(404).render("error", { message: "U2ytkownik nie istnieje." });
+    const data = await buildBracket(targetUserId);
+    res.render("drabinka", { ...data, viewingUser: targetUser });
+  } catch (err) { next(err); }
+});
+
+router.get("/user/:userId/groups", requireAuth, async (req, res, next) => {
+  try {
+    const targetUserId = Number(req.params.userId);
+    const targetUser = await get("SELECT id, name FROM users WHERE id = ?", [targetUserId]);
+    if (!targetUser) return res.status(404).render("error", { message: "Użytkownik nie istnieje." });
+    const predicted = await buildBracket(targetUserId);
+    const actual = await calculateActualGroupTables();
+    res.render("groups", {
+      predictedTables: predicted.tables,
+      actualTables: actual.tables,
+      viewingUser: targetUser
+    });
+  } catch (err) { next(err); }
+});
+
+router.get("/drabinka", requireAuth, async (req, res, next) => {
+  try {
+    const data = await buildBracket(req.session.user.id);
+    res.render("drabinka", data);
+  } catch (err) { next(err); }
+});
+
+router.get("/official-matches", requireAuth, async (req, res, next) => {
+  try {
+    const matches = await all(`SELECT m.*, ht.name AS home_team, ht.flag AS home_flag, at.name AS away_team, at.flag AS away_flag
+      FROM matches m
+      JOIN teams ht ON ht.id = m.home_team_id
+      JOIN teams at ON at.id = m.away_team_id
+      ORDER BY m.group_name, m.id`);
+    const groups = {};
+    for (const match of matches) {
+      groups[match.group_name] ||= [];
+      groups[match.group_name].push(match);
+    }
+    res.render("official_matches", { groups });
+  } catch (err) { next(err); }
+});
+
+router.get("/official-groups", requireAuth, async (req, res, next) => {
+  try {
+    const { tables } = await calculateActualGroupTables();
+    res.render("official_groups", { actualTables: tables });
+  } catch (err) { next(err); }
+});
+
+router.get("/drabinka-oficjalna", requireAuth, async (req, res, next) => {
+  try {
+    const data = await buildOfficialBracket(req.session.user.id);
+    res.render("drabinka", { ...data, official: true });
   } catch (err) { next(err); }
 });
 

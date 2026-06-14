@@ -1,4 +1,15 @@
 <%- include('partials/header') %>
+<section class="card" style="margin-bottom: 24px; padding: 15px 20px;">
+  <h2 style="margin-top: 0; font-size: 16px;">Ustawienia profilu</h2>
+  <form method="post" action="/profile/update-name" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; margin: 0;">
+      Nazwa wyświetlana w rankingu:
+      <input type="text" name="name" value="<%= currentUser.name %>" required style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 220px;">
+    </label>
+    <button type="submit" class="primary" style="padding: 6px 14px; font-size: 13px; border-radius: 6px;">Zmień nazwę</button>
+  </form>
+</section>
+
 <section class="card">
   <h1>Ranking</h1>
   <table>
@@ -7,7 +18,7 @@
       <% rows.forEach((row, index) => { %>
         <tr>
           <td><%= index + 1 %></td>
-          <td><%= row.name %></td>
+          <td><div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;"><%= row.name %></div><div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-start; align-items: center;"><a href="/user/<%= row.id %>/picks" style="display: inline-block; width: 110px; text-align: center; background-color: #3b82f6; color: white; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Typy grupowe</a><a href="/user/<%= row.id %>/groups" style="display: inline-block; width: 110px; text-align: center; background-color: #f59e0b; color: white; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Podgląd grupy</a><a href="/user/<%= row.id %>/bracket" style="display: inline-block; width: 110px; text-align: center; background-color: #10b981; color: white; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Podgląd drabinki</a></div></td>
           <td><strong><%= row.total %></strong></td>
           <td><%= row.exact %></td>
           <td><%= row.outcome %></td>
@@ -16,4 +27,15 @@
     </tbody>
   </table>
 </section>
+
+<section class="card" style="margin-top: 24px; padding: 20px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+  <h2 style="margin-top: 0; font-size: 16px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Oficjalny stan turnieju</h2>
+  <p class="muted" style="font-size: 13px; margin-bottom: 16px;">Zobacz rzeczywiste oficjalne tabele, wyniki meczów oraz drabinkę pucharową wprowadzone przez administratora.</p>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="/official-matches" class="primary" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 13px; background-color: #3b82f6; display: inline-block; color: white;">Oficjalne wyniki meczów</a>
+    <a href="/official-groups" class="primary" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 13px; background-color: #f59e0b; display: inline-block; color: white;">Oficjalne tabele grup</a>
+    <a href="/drabinka-oficjalna" class="primary" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 13px; background-color: #10b981; display: inline-block; color: white;">Oficjalna drabinka pucharowa</a>
+  </div>
+</section>
+
 <%- include('partials/footer') %>

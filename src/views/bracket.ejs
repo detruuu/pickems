@@ -1,104 +1,98 @@
-<%- include('partials/header') %>
-<h1>Drabinka fazy pucharowej MŚ 2026</h1>
-<p class="muted">
+﻿<%- include('partials/header') %>
+<%
+function formatKickoff(str) {
+  if (!str) return "";
+  const parts = str.split(" ");
+  if (parts.length < 2) return str;
+  const dateParts = parts[0].split("-");
+  if (dateParts.length < 3) return str;
+  let time = parts[1];
+  if (time === "00:00") time = "18:00";
+  return dateParts[2] + "." + dateParts[1] + " " + time;
+}
+const readonly = typeof viewingUser !== "undefined" && viewingUser !== null;
+%>
+
+<h1>Faza pucharowa MŚ 2026</h1>
+<p class='muted'>
   Drabinka jest liczona z Twoich typów fazy grupowej. Po uzupełnieniu wszystkich 72 meczów grupowych aplikacja podstawia drużyny do 1/16 finału. Po zapisaniu wyników danej rundy zwycięzcy automatycznie przechodzą dalej.
 </p>
 
 <% if (!complete) { %>
-  <section class="card">
+  <section class='card'>
     <h2>Najpierw uzupełnij fazę grupową</h2>
     <p>Uzupełniono <strong><%= completedPicks %></strong> z <strong><%= totalGroupMatches %></strong> typów grupowych.</p>
-    <p class="muted">Gdy wpiszesz wszystkie wyniki grup, tutaj pojawią się konkretne pary 1/16 finału.</p>
-    <a class="primary" href="/">Wróć do typowania grup</a>
+    <p class='muted'>Gdy wpiszesz wszystkie wyniki grup, tutaj pojawią się konkretne pary faza pucharowej.</p>
+    <a class='primary' href='/'>Wróć do typowania grup</a>
   </section>
 <% } else { %>
   <% if (champion) { %>
-    <section class="card champion-card">
+    <section class='card champion-card'>
       <h2>Twój mistrz świata</h2>
-      <p class="champion" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <p class='champion' style='display: flex; align-items: center; justify-content: center; gap: 8px;'>
         <% if (champion.flag) { %>
-          <img src="https://flagcdn.com/w80/<%= champion.flag %>.png" style="height: auto; width: 44px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" alt="">
+          <img src='https://flagcdn.com/w80/<%= champion.flag %>.png' style='height: auto; width: 44px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);' alt="">
         <% } %>
         <%= champion.name %>
       </p>
     </section>
   <% } %>
 
-  <section class="card">
-    <h2>Tabele grup według Twoich typów</h2>
-    <div class="tables-grid">
-      <% Object.keys(tables).forEach((groupName) => { %>
-        <div class="mini-table">
-          <h3>Grupa <%= groupName %></h3>
-          <table>
-            <thead><tr><th>#</th><th>Drużyna</th><th>PKT</th><th>BR</th></tr></thead>
-            <tbody>
-              <% tables[groupName].forEach((team) => { %>
-                <tr>
-                  <td><%= team.rank %></td>
-                  <td>
-                    <% if (team.flag) { %>
-                      <img src="https://flagcdn.com/w20/<%= team.flag %>.png" style="vertical-align: middle; margin-right: 4px; border: 1px solid #e5e7eb; border-radius: 2px;" alt="">
-                    <% } %>
-                    <%= team.name %>
-                  </td>
-                  <td><%= team.points %></td>
-                  <td><%= team.gf %>:<%= team.ga %></td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
-      <% }) %>
-    </div>
-  </section>
-
-  <form method="post" action="/bracket/save-all">
+  <form method='post' action='/bracket/save-all'>
     <% Object.keys(rounds).forEach((roundName) => { %>
-      <section class="card">
+      <section class='card'>
         <h2><%= roundName %></h2>
-        <div class="match-list">
+        <div class='match-list'>
           <% rounds[roundName].forEach((match) => { %>
             <% const playable = match.homeTeam && match.awayTeam; %>
-            <div class="match-row">
-              <div>
-                <strong>M<%= match.no %></strong> ·
-                <% if (playable) { %>
-                  <strong>
-                    <% if (match.homeTeam.flag) { %>
-                      <img src="https://flagcdn.com/w20/<%= match.homeTeam.flag %>.png" style="vertical-align: middle; margin-right: 4px; border: 1px solid #e5e7eb; border-radius: 2px;" alt="">
-                    <% } %>
-                    <%= match.homeTeam.name %>
-                  </strong>
-                  vs
-                  <strong>
-                    <% if (match.awayTeam.flag) { %>
-                      <img src="https://flagcdn.com/w20/<%= match.awayTeam.flag %>.png" style="vertical-align: middle; margin-right: 4px; border: 1px solid #e5e7eb; border-radius: 2px;" alt="">
-                    <% } %>
-                    <%= match.awayTeam.name %>
-                  </strong>
+            <div class='match-row' style='<%= readonly ? "border: 2.5px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" : "" %> position: relative; overflow: hidden; display: flex !important; flex-direction: row !important; align-items: center; justify-content: space-between; padding: 14px 18px; margin-bottom: 8px;'>
+              <!-- Tło z flagami krajów -->
+              <div style='position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1;'>
+                <% if (playable && match.homeTeam.flag) { %>
+                  <img src='https://flagcdn.com/w160/<%= match.homeTeam.flag %>.png' style='height: 100%; width: auto; opacity: 0.90; pointer-events: none;' alt="">
                 <% } else { %>
-                  <span class="muted"><%= match.homeLabel %> vs <%= match.awayLabel %></span>
+                  <div></div>
                 <% } %>
-                <div class="muted small">
-                  Sloty: <%= match.homeLabel %> vs <%= match.awayLabel %>
-                  <% if (match.pick) { %> · zapisany typ: <%= match.pick.home_score %>:<%= match.pick.away_score %><% } %>
-                </div>
+                <% if (playable && match.awayTeam.flag) { %>
+                  <img src='https://flagcdn.com/w160/<%= match.awayTeam.flag %>.png' style='height: 100%; width: auto; opacity: 0.90; pointer-events: none;' alt="">
+                <% } else { %>
+                  <div></div>
+                <% } %>
               </div>
-              <div class="score-inputs">
-                <input type="number" min="0" name="home_<%= match.no %>" value="<%= match.pick ? match.pick.home_score : '' %>" <%= playable ? '' : 'disabled' %> placeholder="0">
-                <span>:</span>
-                <input type="number" min="0" name="away_<%= match.no %>" value="<%= match.pick ? match.pick.away_score : '' %>" <%= playable ? '' : 'disabled' %> placeholder="0">
+              <!-- Zawartość pojedynku (nad tłem) -->
+              <div style='display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; z-index: 2; position: relative;'>
+                <!-- Drużyna gospodarzy (lewa) -->
+                <div style='flex: 1; text-align: right; font-weight: 800; font-size: 14px; word-wrap: break-word; overflow-wrap: break-word; -webkit-text-stroke: 1.5px #ffffff; paint-order: stroke fill; color: #0f172a;'>
+                  <%= match.homeLabel %>
+                </div>
+                <!-- Panel wprowadzania wyników (środek) -->
+                <div style='display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 130px; flex-shrink: 0;'>
+                  <div style='display: flex; align-items: center; gap: 5px; justify-content: center;'>
+                    <input type='number' min='0' name='home_<%= match.no %>' value='<%= match.pick ? match.pick.home_score : "" %>' <%= playable ? "" : "disabled" %> placeholder='0' style='width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; background: rgba(255, 255, 255, 0.95); position: relative; z-index: 3;'>
+                    <span style='font-weight: bold; font-size: 15px; color: #0f172a; -webkit-text-stroke: 1.5px #ffffff; paint-order: stroke fill;'>:</span>
+                    <input type='number' min='0' name='away_<%= match.no %>' value='<%= match.pick ? match.pick.away_score : "" %>' <%= playable ? "" : "disabled" %> placeholder='0' style='width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; background: rgba(255, 255, 255, 0.95); position: relative; z-index: 3;'>
+                  </div>
+                  <div class='muted' style='font-size: 10px; font-weight: 800; color: #0f172a; -webkit-text-stroke: 1.5px #ffffff; paint-order: stroke fill; text-align: center;'>
+                    <strong><%= formatKickoff(match.kickoff_at) || ('M' + match.no) %></strong>
+                    <% if (match.pick) { %> · typ: <%= match.pick.home_score %>:<%= match.pick.away_score %><% } %>
+                  </div>
+                </div>
+                <!-- Drużyna gości (prawa) -->
+                <div style='flex: 1; text-align: left; font-weight: 800; font-size: 14px; word-wrap: break-word; overflow-wrap: break-word; -webkit-text-stroke: 1.5px #ffffff; paint-order: stroke fill; color: #0f172a;'>
+                  <%= match.awayLabel %>
+                </div>
               </div>
             </div>
           <% }) %>
         </div>
       </section>
     <% }) %>
-    <section class="save-bar">
-      <button class="primary" type="submit">Zapisz rundę / drabinkę</button>
-      <span class="muted small">Po zapisie aplikacja przeliczy kolejne pary. Jeśli pojawi się następna runda, uzupełnij ją i zapisz ponownie.</span>
+    <% if (!readonly) { %>
+    <section class='save-bar'>
+      <button class='primary' type='submit'>Zapisz rundę / drabinkę</button>
+      <span class='muted small'>Po zapisie aplikacja przeliczy kolejne pary. Jeśli pojawi się następna runda, uzupełnij ją i zapisz ponownie.</span>
     </section>
+    <% } %>
   </form>
 <% } %>
 

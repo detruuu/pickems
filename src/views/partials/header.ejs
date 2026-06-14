@@ -11,9 +11,11 @@
   <a class="brand" href="/">Pickems 2026</a>
   <nav>
     <% if (currentUser) { %>
-      <a href="/">Typy</a>
+      <a href="/">Faza grupowa</a>
+      <a href="/groups">Grupy</a>
+      <a href="/bracket">Faza pucharowa</a>
+      <a href="/drabinka">Drabinka</a>
       <a href="/ranking">Ranking</a>
-          <a href="/bracket">Drabinka</a>
       <% if (currentUser.role === 'admin') { %><a href="/admin">Admin</a><% } %>
       <form action="/logout" method="post" class="inline"><button>Wyloguj</button></form>
     <% } else { %>

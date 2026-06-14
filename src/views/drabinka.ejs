@@ -1,0 +1,509 @@
+﻿<%- include('partials/header') %>
+<%
+function formatKickoff(str) {
+  if (!str) return "";
+  const parts = str.split(" ");
+  if (parts.length < 2) return str;
+  const dateParts = parts[0].split("-");
+  if (dateParts.length < 3) return str;
+  let time = parts[1];
+  if (time === "00:00") time = "18:00";
+  return dateParts[2] + "." + dateParts[1] + " " + time;
+}
+
+function shortenLabel(label) {
+  if (!label) return "";
+  return label
+    .replace(/najlepsza 3\. drużyna z ([A-L]+)/g, "3. $1")
+    .replace(/3\. najlepsza 3\. drużyna z ([A-L]+)/g, "3. $1")
+    .replace(/([12])\. miejsce grupa ([A-L])/g, "$1. gr. $2")
+    .replace(/zwycięzca M(\d+)/gi, "Zwyc. M$1")
+    .replace(/przegrany M(\d+)/gi, "Przegr. M$1");
+}
+
+// Order of matches in Column 1 (1/16) to align with pairs in Column 2 (1/8)
+const r32Order = [74, 77, 73, 75, 76, 78, 79, 80, 83, 84, 81, 82, 86, 88, 85, 87];
+// Order of matches in Column 2 (1/8)
+const r16Order = [89, 90, 91, 92, 93, 94, 95, 96];
+// Order of matches in Column 3 (Quarter)
+const r8Order = [97, 99, 98, 100];
+// Order of matches in Column 4 (Semi)
+const r4Order = [101, 102];
+// Order of matches in Column 5 (Final & 3rd place)
+const r2Order = [104, 103];
+
+// Let's index all our bracket matches by match number
+const matchMap = new Map();
+if (typeof rounds !== 'undefined') {
+  Object.values(rounds).flat().forEach(m => {
+    matchMap.set(m.no, m);
+  });
+}
+%>
+
+<style>
+  .drabinka-page {
+    max-width: 100% !important;
+    margin: 0 auto;
+    padding: 0 10px;
+  }
+  .drabinka-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .bracket-wrapper {
+    overflow-x: auto;
+    padding-bottom: 24px;
+    margin: 0 -16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .bracket-container {
+    display: flex;
+    gap: 40px;
+    padding: 20px 16px;
+    min-width: 1780px;
+    height: 1600px; /* Perfect height to distribute 16 matches vertically without shrinking them */
+    align-items: stretch;
+  }
+  .bracket-column {
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+    flex-shrink: 0;
+  }
+  .column-header {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #cbd5e1;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .bracket-column-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 100%;
+    position: relative;
+  }
+  
+  /* Match Card styling - FotMob style */
+  .match-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    user-select: none;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0; /* Prevent browser from shrinking card height to fit container */
+  }
+  .match-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    border-color: #cbd5e1;
+  }
+  
+  .match-card-meta {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+  }
+  
+  .team-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .team-row:last-child {
+    border-bottom: none;
+  }
+  
+  .team-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .team-flag {
+    width: 22px;
+    height: 15px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid #cbd5e1;
+    flex-shrink: 0;
+  }
+  .team-flag-placeholder {
+    width: 22px;
+    height: 15px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    border: 1px solid #cbd5e1;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+  
+  .team-name {
+    font-size: 13px;
+    line-height: 1.2;
+    padding-right: 4px;
+    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  
+  .score-box {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    background: #f8fafc;
+    border-left: 1px solid #e2e8f0;
+    margin: -8px -10px -8px 0;
+    color: #475569;
+  }
+  
+  /* Winner & Loser visual indicators */
+  .winner {
+    color: #0f172a;
+    font-weight: 800;
+  }
+  .winner .score-box {
+    background: #f0fdf4;
+    color: #15803d;
+    border-left-color: #bbf7d0;
+  }
+  .loser {
+    opacity: 0.55;
+  }
+  
+  .champion-badge {
+    position: absolute;
+    top: -8px;
+    right: 8px;
+    background: #eab308;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 3;
+    text-transform: uppercase;
+  }
+</style>
+
+<div class="drabinka-page">
+  <% 
+    const readonly = (typeof viewingUser !== 'undefined' && viewingUser !== null) || (typeof official !== 'undefined' && official); 
+    const isOfficial = typeof official !== 'undefined' && official;
+  %>
+  <div class="drabinka-header">
+    <% if (isOfficial) { %>
+      <h1>Oficjalna drabinka pucharowa MŚ 2026</h1>
+      <p class="muted">
+        Graficzny widok oficjalnej drabinki pucharowej wyliczonej z rzeczywistych wyników fazy grupowej turnieju, połączony z Twoimi typami pucharowymi.
+      </p>
+    <% } else { %>
+      <h1>Drabinka pucharowa MŚ 2026<%= readonly ? ' (podgląd użytkownika ' + viewingUser.name + ')' : '' %></h1>
+      <p class="muted">
+        Graficzny widok <%= readonly ? 'fazy pucharowej użytkownika ' + viewingUser.name : 'Twojej fazy pucharowej' %> wyliczonej z typów. Wyniki i awanse generują się automatycznie na podstawie wpisanych typów.
+      </p>
+    <% } %>
+  </div>
+
+  <% if (!complete) { %>
+    <section class="card" style="text-align: center; max-width: 600px; margin: 40px auto;">
+      <h2>Najpierw uzupełnij fazę grupową</h2>
+      <p>Uzupełniono <strong><%= completedPicks %></strong> z <strong><%= totalGroupMatches %></strong> typów grupowych.</p>
+      <p class="muted">Gdy wpiszesz wszystkie wyniki grup, tutaj pojawi się wyliczona drabinka turniejowa.</p>
+      <a class="primary" href="/" style="display: inline-block; margin-top: 15px; text-decoration: none;">Wróć do typowania grup</a>
+    </section>
+  <% } else { %>
+    
+    <% if (champion) { %>
+      <div class="card" style="max-width: 400px; margin: 0 auto 24px; text-align: center; border: 2px solid #eab308; background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);">
+        <div style="font-size: 11px; font-weight: 900; color: #b45309; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;"><%= isOfficial ? 'Twój Mistrz Świata (na oficjalnej drabince)' : (readonly ? 'Mistrz Świata użytkownika ' + viewingUser.name : 'Twój Mistrz Świata 2026') %></div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <% if (champion.flag) { %>
+            <img src="https://flagcdn.com/w80/<%= champion.flag %>.png" style="height: 24px; width: auto; border: 1px solid #cbd5e1; border-radius: 3px;" alt="">
+          <% } %>
+          <span style="font-size: 20px; font-weight: 800; color: #1e1b4b;"><%= champion.name %></span>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="bracket-wrapper">
+      <div class="bracket-container">
+        
+        <!-- KOLUMNA 1: 1/16 FINAŁU -->
+        <div class="bracket-column">
+          <div class="column-header">1/16 Finału</div>
+          <div class="bracket-column-inner">
+            <% r32Order.forEach(matchNo => { %>
+              <% const match = matchMap.get(matchNo); %>
+              <% if (match) { %>
+                <% 
+                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
+                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
+                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                %>
+                <div class="match-card">
+                  <div class="match-card-meta">
+                    <span>M<%= match.no %></span>
+                    <span><%= formatKickoff(match.kickoff_at) %></span>
+                  </div>
+                  
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.homeTeam && match.homeTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                  </div>
+                  
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.awayTeam && match.awayTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                  </div>
+                </div>
+              <% } %>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- KOLUMNA 2: 1/8 FINAŁU -->
+        <div class="bracket-column">
+          <div class="column-header">1/8 Finału</div>
+          <div class="bracket-column-inner">
+            <% r16Order.forEach(matchNo => { %>
+              <% const match = matchMap.get(matchNo); %>
+              <% if (match) { %>
+                <% 
+                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
+                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
+                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                %>
+                <div class="match-card">
+                  <div class="match-card-meta">
+                    <span>M<%= match.no %></span>
+                    <span><%= formatKickoff(match.kickoff_at) %></span>
+                  </div>
+                  
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.homeTeam && match.homeTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                  </div>
+                  
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.awayTeam && match.awayTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                  </div>
+                </div>
+              <% } %>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- KOLUMNA 3: ĆWIERĆFINAŁY -->
+        <div class="bracket-column">
+          <div class="column-header">Ćwierćfinały</div>
+          <div class="bracket-column-inner">
+            <% r8Order.forEach(matchNo => { %>
+              <% const match = matchMap.get(matchNo); %>
+              <% if (match) { %>
+                <% 
+                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
+                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
+                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                %>
+                <div class="match-card">
+                  <div class="match-card-meta">
+                    <span>M<%= match.no %></span>
+                    <span><%= formatKickoff(match.kickoff_at) %></span>
+                  </div>
+                  
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.homeTeam && match.homeTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                  </div>
+                  
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.awayTeam && match.awayTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                  </div>
+                </div>
+              <% } %>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- KOLUMNA 4: PÓŁFINAŁY -->
+        <div class="bracket-column">
+          <div class="column-header">Półfinały</div>
+          <div class="bracket-column-inner">
+            <% r4Order.forEach(matchNo => { %>
+              <% const match = matchMap.get(matchNo); %>
+              <% if (match) { %>
+                <% 
+                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
+                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
+                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                %>
+                <div class="match-card">
+                  <div class="match-card-meta">
+                    <span>M<%= match.no %></span>
+                    <span><%= formatKickoff(match.kickoff_at) %></span>
+                  </div>
+                  
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.homeTeam && match.homeTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                  </div>
+                  
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.awayTeam && match.awayTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                  </div>
+                </div>
+              <% } %>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- KOLUMNA 5: FINAŁY -->
+        <div class="bracket-column">
+          <div class="column-header">Finały</div>
+          <div class="bracket-column-inner">
+            <% r2Order.forEach((matchNo, index) => { %>
+              <% const match = matchMap.get(matchNo); %>
+              <% if (match) { %>
+                <% 
+                  const isFinal = matchNo === 104;
+                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
+                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
+                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                %>
+                <div class="match-card" style="<%= isFinal ? 'border: 2px solid #eab308; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%);' : '' %>">
+                  <% if (isFinal) { %>
+                    <span class="champion-badge">Finał</span>
+                  <% } %>
+                  <div class="match-card-meta">
+                    <span><%= isFinal ? 'Finał (M104)' : 'O 3. miejsce (M103)' %></span>
+                    <span><%= formatKickoff(match.kickoff_at) %></span>
+                  </div>
+                  
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.homeTeam && match.homeTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                  </div>
+                  
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                    <div class="team-info">
+                      <% if (match.awayTeam && match.awayTeam.flag) { %>
+                        <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
+                      <% } else { %>
+                        <span class="team-flag-placeholder"></span>
+                      <% } %>
+                      <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
+                    </div>
+                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                  </div>
+                </div>
+              <% } %>
+            <% }) %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>
