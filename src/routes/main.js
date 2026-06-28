@@ -1,7 +1,7 @@
 const express = require('express');
 const { all, get, run, pickPoints } = require('../db');
 const { requireAuth } = require('../middleware');
-const { buildBracket, calculateActualGroupTables, buildOfficialBracket } = require('../bracket_logic');
+const { buildUserKnockout, buildActualKnockout, calculateGroupTables, calculateActualGroupTables } = require('../bracket_logic');
 const router = express.Router();
 
 async function getMatchesWithPicks(userId) {
@@ -28,7 +28,7 @@ router.get('/', requireAuth, async (req, res, next) => {
 
 router.get('/groups', requireAuth, async (req, res, next) => {
   try {
-    const predicted = await buildBracket(req.session.user.id);
+    const predicted = await calculateGroupTables(req.session.user.id);
     const actual = await calculateActualGroupTables();
     res.render('groups', {
       predictedTables: predicted.tables,
@@ -107,7 +107,7 @@ router.post('/picks/:matchId', requireAuth, async (req, res, next) => {
 
 router.get('/bracket', requireAuth, async (req, res, next) => {
   try {
-    const data = await buildBracket(req.session.user.id);
+    const data = await buildUserKnockout(req.session.user.id);
     res.render('bracket', data);
   } catch (err) { next(err); }
 });
@@ -115,11 +115,13 @@ router.get('/bracket', requireAuth, async (req, res, next) => {
 
 router.post('/bracket/save-all', requireAuth, async (req, res, next) => {
   try {
-    const data = await buildBracket(req.session.user.id);
-    const playableMatches = Object.values(data.rounds).flat().filter((match) => match.homeTeam && match.awayTeam);
+    const data = await buildUserKnockout(req.session.user.id);
+    // Typować można tylko mecze, w których admin ustalił już obie drużyny i które
+    // nie są jeszcze rozstrzygnięte/zablokowane (match.editable).
+    const editableMatches = Object.values(data.rounds).flat().filter((match) => match.editable);
     const submitted = [];
 
-    for (const match of playableMatches) {
+    for (const match of editableMatches) {
       const homeRaw = req.body[`home_${match.no}`];
       const awayRaw = req.body[`away_${match.no}`];
       const hasAnyValue = homeRaw !== undefined && homeRaw !== '' || awayRaw !== undefined && awayRaw !== '';
@@ -147,13 +149,8 @@ router.post('/bracket/save-all', requireAuth, async (req, res, next) => {
         updated_at = CURRENT_TIMESTAMP`, [req.session.user.id, pick.matchNo, pick.homeScore, pick.awayScore]);
     }
 
-    if (submitted.length > 0) {
-      const lastSubmitted = Math.max(...submitted.map((pick) => pick.matchNo));
-      await run('DELETE FROM knockout_picks WHERE user_id = ? AND match_no > ?', [req.session.user.id, lastSubmitted]);
-    }
-
     req.session.flash = submitted.length > 0
-      ? `Zapisano ${submitted.length} typów fazy pucharowej. Późniejsze rundy zostały przeliczone.`
+      ? `Zapisano ${submitted.length} typów fazy pucharowej.`
       : 'Nie było nowych typów fazy pucharowej do zapisania.';
     res.redirect('/bracket');
   } catch (err) { next(err); }
@@ -176,10 +173,10 @@ router.post('/bracket/:matchNo', requireAuth, async (req, res, next) => {
       return res.redirect('/bracket');
     }
 
-    const data = await buildBracket(req.session.user.id);
-    const match = Object.values(data.rounds).flat().find((m) => m.no === matchNo);
-    if (!match || !match.homeTeam || !match.awayTeam) {
-      req.session.flash = 'Najpierw uzupełnij wcześniejsze typy, żeby aplikacja znała obie drużyny w tym meczu.';
+    const data = await buildUserKnockout(req.session.user.id);
+    const match = data.byNo.get(matchNo);
+    if (!match || !match.editable) {
+      req.session.flash = 'Tego meczu nie można teraz typować: drużyny nie są jeszcze znane albo mecz został już rozstrzygnięty przez admina.';
       return res.redirect('/bracket');
     }
 
@@ -189,8 +186,7 @@ router.post('/bracket/:matchNo', requireAuth, async (req, res, next) => {
       home_score = excluded.home_score,
       away_score = excluded.away_score,
       updated_at = CURRENT_TIMESTAMP`, [req.session.user.id, matchNo, homeScore, awayScore]);
-    await run('DELETE FROM knockout_picks WHERE user_id = ? AND match_no > ?', [req.session.user.id, matchNo]);
-    req.session.flash = 'Typ fazy pucharowej zapisany. Późniejsze rundy zostały przeliczone.';
+    req.session.flash = 'Typ fazy pucharowej zapisany.';
     res.redirect('/bracket');
   } catch (err) { next(err); }
 });
@@ -215,6 +211,19 @@ router.get('/ranking', requireAuth, async (req, res, next) => {
         if (points === 2) exact += 1;
         if (points === 1) outcome += 1;
       }
+
+      // Punkty za typy fazy pucharowej liczone wg rzeczywistych wyników admina.
+      const knockoutRecords = await all(`SELECT kr.home_score, kr.away_score, kp.home_score AS pick_home_score, kp.away_score AS pick_away_score
+        FROM knockout_results kr
+        JOIN knockout_picks kp ON kp.match_no = kr.match_no AND kp.user_id = ?
+        WHERE kr.home_score IS NOT NULL AND kr.away_score IS NOT NULL`, [user.id]);
+      for (const r of knockoutRecords) {
+        const points = pickPoints(r, { home_score: r.pick_home_score, away_score: r.pick_away_score });
+        total += points;
+        if (points === 2) exact += 1;
+        if (points === 1) outcome += 1;
+      }
+
       rows.push({ ...user, total, exact, outcome });
     }
     rows.sort((a, b) => b.total - a.total || b.exact - a.exact || a.name.localeCompare(b.name));
@@ -258,7 +267,7 @@ router.get("/user/:userId/bracket", requireAuth, async (req, res, next) => {
     const targetUserId = Number(req.params.userId);
     const targetUser = await get("SELECT id, name FROM users WHERE id = ?", [targetUserId]);
     if (!targetUser) return res.status(404).render("error", { message: "U2ytkownik nie istnieje." });
-    const data = await buildBracket(targetUserId);
+    const data = await buildUserKnockout(targetUserId);
     res.render("drabinka", { ...data, viewingUser: targetUser });
   } catch (err) { next(err); }
 });
@@ -268,7 +277,7 @@ router.get("/user/:userId/groups", requireAuth, async (req, res, next) => {
     const targetUserId = Number(req.params.userId);
     const targetUser = await get("SELECT id, name FROM users WHERE id = ?", [targetUserId]);
     if (!targetUser) return res.status(404).render("error", { message: "Użytkownik nie istnieje." });
-    const predicted = await buildBracket(targetUserId);
+    const predicted = await calculateGroupTables(targetUserId);
     const actual = await calculateActualGroupTables();
     res.render("groups", {
       predictedTables: predicted.tables,
@@ -280,7 +289,7 @@ router.get("/user/:userId/groups", requireAuth, async (req, res, next) => {
 
 router.get("/drabinka", requireAuth, async (req, res, next) => {
   try {
-    const data = await buildBracket(req.session.user.id);
+    const data = await buildUserKnockout(req.session.user.id);
     res.render("drabinka", data);
   } catch (err) { next(err); }
 });
@@ -310,7 +319,7 @@ router.get("/official-groups", requireAuth, async (req, res, next) => {
 
 router.get("/drabinka-oficjalna", requireAuth, async (req, res, next) => {
   try {
-    const data = await buildOfficialBracket(req.session.user.id);
+    const data = await buildActualKnockout();
     res.render("drabinka", { ...data, official: true });
   } catch (err) { next(err); }
 });

@@ -90,6 +90,15 @@ async function init() {
     UNIQUE(user_id, match_no),
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   )`);
+  // Rzeczywiste wyniki fazy pucharowej wpisywane przez admina (mecze 73-104).
+  // To one decydują o awansie we wspólnej drabince, niezależnie od typów użytkowników.
+  await run(`CREATE TABLE IF NOT EXISTS knockout_results (
+    match_no INTEGER PRIMARY KEY,
+    home_score INTEGER,
+    away_score INTEGER,
+    locked INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
 }
 
 function matchOutcome(home, away) {

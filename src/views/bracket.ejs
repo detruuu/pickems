@@ -15,7 +15,7 @@ const readonly = typeof viewingUser !== "undefined" && viewingUser !== null;
 
 <h1>Faza pucharowa MŚ 2026</h1>
 <p class='muted'>
-  Drabinka jest liczona z Twoich typów fazy grupowej. Po uzupełnieniu wszystkich 72 meczów grupowych aplikacja podstawia drużyny do 1/16 finału. Po zapisaniu wyników danej rundy zwycięzcy automatycznie przechodzą dalej.
+  Drabinka jest wspólna dla wszystkich. Pary 1/16 finału są stałe, a o awansie decydują rzeczywiste wyniki wpisywane przez admina - nie Twoje typy. Mecz kolejnej rundy możesz wytypować dopiero, gdy admin rozstrzygnie poprzednią rundę i znane są obie drużyny. Twój typ liczy się do punktów (2 pkt dokładny wynik, 1 pkt trafiony rezultat).
 </p>
 
 <% if (!complete) { %>
@@ -44,7 +44,7 @@ const readonly = typeof viewingUser !== "undefined" && viewingUser !== null;
         <h2><%= roundName %></h2>
         <div class='match-list'>
           <% rounds[roundName].forEach((match) => { %>
-            <% const playable = match.homeTeam && match.awayTeam; %>
+            <% const playable = match.known; %>
             <div class='match-row' style='<%= readonly ? "border: 2.5px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" : "" %> position: relative; overflow: hidden; display: flex !important; flex-direction: row !important; align-items: center; justify-content: space-between; padding: 14px 18px; margin-bottom: 8px;'>
               <!-- Tło z flagami krajów -->
               <div style='position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 1;'>
@@ -68,13 +68,14 @@ const readonly = typeof viewingUser !== "undefined" && viewingUser !== null;
                 <!-- Panel wprowadzania wyników (środek) -->
                 <div style='display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 130px; flex-shrink: 0;'>
                   <div style='display: flex; align-items: center; gap: 5px; justify-content: center;'>
-                    <input type='number' min='0' name='home_<%= match.no %>' value='<%= match.pick ? match.pick.home_score : "" %>' <%= playable ? "" : "disabled" %> placeholder='0' style='width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; background: rgba(255, 255, 255, 0.95); position: relative; z-index: 3;'>
+                    <input type='number' min='0' name='home_<%= match.no %>' value='<%= match.pick ? match.pick.home_score : "" %>' <%= match.editable ? "" : "disabled" %> placeholder='0' style='width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; background: rgba(255, 255, 255, 0.95); position: relative; z-index: 3;'>
                     <span style='font-weight: bold; font-size: 15px; color: #0f172a; -webkit-text-stroke: 1.5px #ffffff; paint-order: stroke fill;'>:</span>
-                    <input type='number' min='0' name='away_<%= match.no %>' value='<%= match.pick ? match.pick.away_score : "" %>' <%= playable ? "" : "disabled" %> placeholder='0' style='width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; background: rgba(255, 255, 255, 0.95); position: relative; z-index: 3;'>
+                    <input type='number' min='0' name='away_<%= match.no %>' value='<%= match.pick ? match.pick.away_score : "" %>' <%= match.editable ? "" : "disabled" %> placeholder='0' style='width: 48px; text-align: center; padding: 5px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; background: rgba(255, 255, 255, 0.95); position: relative; z-index: 3;'>
                   </div>
                   <div class='muted' style='font-size: 10px; font-weight: 800; color: #0f172a; -webkit-text-stroke: 1.5px #ffffff; paint-order: stroke fill; text-align: center;'>
                     <strong><%= formatKickoff(match.kickoff_at) || ('M' + match.no) %></strong>
                     <% if (match.pick) { %> · typ: <%= match.pick.home_score %>:<%= match.pick.away_score %><% } %>
+                    <% if (match.result) { %> · wynik: <%= match.result.home_score %>:<%= match.result.away_score %><% if (match.points !== null) { %> (+<%= match.points %>)<% } %><% } %>
                   </div>
                 </div>
                 <!-- Drużyna gości (prawa) -->

@@ -22,4 +22,30 @@
     </tbody>
   </table>
 </section>
+
+<section class="card">
+  <h2>Faza pucharowa</h2>
+  <p class="muted">Wpisuj rzeczywiste wyniki pucharu. To one decydują o awansie we wspólnej drabince wszystkich graczy (nie typy użytkowników). Drużyny w meczu pojawiają się dopiero, gdy poprzednia runda jest rozstrzygnięta. W pucharze musi być zwycięzca.</p>
+  <table>
+    <thead><tr><th>Runda</th><th>Mecz</th><th>Wynik</th><th>Blokada</th><th></th></tr></thead>
+    <tbody>
+    <% knockoutMatches.forEach(match => { %>
+      <tr>
+        <form method="post" action="/admin/knockout/<%= match.no %>/result">
+          <td><%= match.round %></td>
+          <td>
+            M<%= match.no %>: <%= match.homeLabel %> - <%= match.awayLabel %>
+          </td>
+          <td class="admin-score">
+            <input type="number" min="0" name="home_score" value="<%= match.result ? match.result.home_score : '' %>" <%= match.known ? '' : 'disabled' %>> :
+            <input type="number" min="0" name="away_score" value="<%= match.result ? match.result.away_score : '' %>" <%= match.known ? '' : 'disabled' %>>
+          </td>
+          <td><input type="checkbox" name="locked" <%= match.locked ? 'checked' : '' %>></td>
+          <td><button <%= match.known ? '' : 'disabled' %>>Zapisz</button></td>
+        </form>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</section>
 <%- include('partials/footer') %>

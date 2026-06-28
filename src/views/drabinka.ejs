@@ -228,12 +228,12 @@ if (typeof rounds !== 'undefined') {
     <% if (isOfficial) { %>
       <h1>Oficjalna drabinka pucharowa MŚ 2026</h1>
       <p class="muted">
-        Graficzny widok oficjalnej drabinki pucharowej wyliczonej z rzeczywistych wyników fazy grupowej turnieju, połączony z Twoimi typami pucharowymi.
+        Graficzny widok oficjalnej drabinki pucharowej z rzeczywistymi wynikami wpisanymi przez admina. Awans w kolejnych rundach wynika z tych wyników.
       </p>
     <% } else { %>
       <h1>Drabinka pucharowa MŚ 2026<%= readonly ? ' (podgląd użytkownika ' + viewingUser.name + ')' : '' %></h1>
       <p class="muted">
-        Graficzny widok <%= readonly ? 'fazy pucharowej użytkownika ' + viewingUser.name : 'Twojej fazy pucharowej' %> wyliczonej z typów. Wyniki i awanse generują się automatycznie na podstawie wpisanych typów.
+        Wspólna drabinka dla wszystkich graczy. Drużyny i awans wynikają z rzeczywistych wyników wpisywanych przez admina, a nie z typów. Wpisane wyniki i zwycięzców widać na kartach meczów.
       </p>
     <% } %>
   </div>
@@ -269,10 +269,10 @@ if (typeof rounds !== 'undefined') {
             <% r32Order.forEach(matchNo => { %>
               <% const match = matchMap.get(matchNo); %>
               <% if (match) { %>
-                <% 
-                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
-                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
-                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                <%
+                  const res = match.result;
+                  const isHomeWinner = res && res.home_score > res.away_score;
+                  const isAwayWinner = res && res.away_score > res.home_score;
                 %>
                 <div class="match-card">
                   <div class="match-card-meta">
@@ -289,7 +289,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
                   </div>
                   
                   <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
@@ -301,7 +301,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
                   </div>
                 </div>
               <% } %>
@@ -316,10 +316,10 @@ if (typeof rounds !== 'undefined') {
             <% r16Order.forEach(matchNo => { %>
               <% const match = matchMap.get(matchNo); %>
               <% if (match) { %>
-                <% 
-                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
-                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
-                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                <%
+                  const res = match.result;
+                  const isHomeWinner = res && res.home_score > res.away_score;
+                  const isAwayWinner = res && res.away_score > res.home_score;
                 %>
                 <div class="match-card">
                   <div class="match-card-meta">
@@ -336,7 +336,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
                   </div>
                   
                   <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
@@ -348,7 +348,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
                   </div>
                 </div>
               <% } %>
@@ -363,10 +363,10 @@ if (typeof rounds !== 'undefined') {
             <% r8Order.forEach(matchNo => { %>
               <% const match = matchMap.get(matchNo); %>
               <% if (match) { %>
-                <% 
-                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
-                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
-                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                <%
+                  const res = match.result;
+                  const isHomeWinner = res && res.home_score > res.away_score;
+                  const isAwayWinner = res && res.away_score > res.home_score;
                 %>
                 <div class="match-card">
                   <div class="match-card-meta">
@@ -383,7 +383,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
                   </div>
                   
                   <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
@@ -395,7 +395,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
                   </div>
                 </div>
               <% } %>
@@ -410,10 +410,10 @@ if (typeof rounds !== 'undefined') {
             <% r4Order.forEach(matchNo => { %>
               <% const match = matchMap.get(matchNo); %>
               <% if (match) { %>
-                <% 
-                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
-                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
-                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                <%
+                  const res = match.result;
+                  const isHomeWinner = res && res.home_score > res.away_score;
+                  const isAwayWinner = res && res.away_score > res.home_score;
                 %>
                 <div class="match-card">
                   <div class="match-card-meta">
@@ -430,7 +430,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
                   </div>
                   
                   <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
@@ -442,7 +442,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
                   </div>
                 </div>
               <% } %>
@@ -457,11 +457,11 @@ if (typeof rounds !== 'undefined') {
             <% r2Order.forEach((matchNo, index) => { %>
               <% const match = matchMap.get(matchNo); %>
               <% if (match) { %>
-                <% 
+                <%
                   const isFinal = matchNo === 104;
-                  const hasPick = match.pick && match.pick.home_score !== null && match.pick.away_score !== null;
-                  const isHomeWinner = hasPick && match.pick.home_score > match.pick.away_score;
-                  const isAwayWinner = hasPick && match.pick.away_score > match.pick.home_score;
+                  const res = match.result;
+                  const isHomeWinner = res && res.home_score > res.away_score;
+                  const isAwayWinner = res && res.away_score > res.home_score;
                 %>
                 <div class="match-card" style="<%= isFinal ? 'border: 2px solid #eab308; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%);' : '' %>">
                   <% if (isFinal) { %>
@@ -481,7 +481,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.home_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
                   </div>
                   
                   <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
@@ -493,7 +493,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.pick ? match.pick.away_score : '-' %></div>
+                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
                   </div>
                 </div>
               <% } %>

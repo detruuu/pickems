@@ -1,4 +1,4 @@
-const { all, get } = require('./db');
+const { all, get, pickPoints } = require('./db');
 
 const GROUPS = 'ABCDEFGHIJKL'.split('');
 
@@ -42,6 +42,27 @@ const KNOCKOUT = [
   { no: 104, round: 'Finał', homeSlot: 'W101', awaySlot: 'W102', kickoff_at: '2026-07-19 21:00' }
 ];
 
+// Stałe pary 1/16 finału (mecze 73-88), takie same dla wszystkich użytkowników.
+// Nazwy muszą być identyczne jak w seedzie (scripts/seed.js).
+const R32_PAIRS = {
+  73: ['RPA', 'Kanada'],
+  74: ['Niemcy', 'Paragwaj'],
+  75: ['Holandia', 'Maroko'],
+  76: ['Brazylia', 'Japonia'],
+  77: ['Francja', 'Szwecja'],
+  78: ['Wybrzeże Kości Słoniowej', 'Norwegia'],
+  79: ['Meksyk', 'Ekwador'],
+  80: ['Anglia', 'DR Konga'],
+  81: ['USA', 'Bośnia i Hercegowina'],
+  82: ['Belgia', 'Senegal'],
+  83: ['Portugalia', 'Chorwacja'],
+  84: ['Hiszpania', 'Austria'],
+  85: ['Szwajcaria', 'Algieria'],
+  86: ['Argentyna', 'Wyspy Zielonego Przylądka'],
+  87: ['Kolumbia', 'Ghana'],
+  88: ['Australia', 'Egipt']
+};
+
 function baseStats(team) {
   return { ...team, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, gd: 0, points: 0 };
 }
@@ -58,10 +79,6 @@ function addResult(team, gf, ga) {
 
 function compareTeams(a, b) {
   return b.points - a.points || b.gd - a.gd || b.gf - a.gf || a.name.localeCompare(b.name, 'pl');
-}
-
-function compareThirds(a, b) {
-  return compareTeams(a, b);
 }
 
 async function calculateGroupTables(userId) {
@@ -105,106 +122,38 @@ async function calculateActualGroupTables() {
   return { tables, playedMatches };
 }
 
-function chooseThirdAssignments(thirds, slots) {
-  const candidatesByGroup = new Map(thirds.map((team, idx) => [team.group_name, { team, idx }]));
-  let best = null;
-  function scoreAssignment(assignment) {
-    return assignment.map((team) => thirds.findIndex((t) => t.id === team.id));
-  }
-  function better(candidate, current) {
-    if (!current) return true;
-    const a = scoreAssignment(candidate);
-    const b = scoreAssignment(current);
-    for (let i = 0; i < a.length; i += 1) {
-      if (a[i] !== b[i]) return a[i] < b[i];
-    }
-    return false;
-  }
-  function backtrack(i, used, assignment) {
-    if (i === slots.length) {
-      if (better(assignment, best)) best = assignment.slice();
-      return;
-    }
-    const allowed = slots[i].replace(/^3/, '').split('');
-    for (const group of allowed) {
-      const candidate = candidatesByGroup.get(group);
-      if (!candidate || used.has(group)) continue;
-      used.add(group);
-      assignment.push(candidate.team);
-      backtrack(i + 1, used, assignment);
-      assignment.pop();
-      used.delete(group);
-    }
-  }
-  backtrack(0, new Set(), []);
-  return best || [];
+function actualWinner(match, result) {
+  if (!match || !result || result.home_score === null || result.away_score === null || result.home_score === result.away_score) return null;
+  return result.home_score > result.away_score ? match.homeTeam : match.awayTeam;
 }
 
-function slotLabel(slot) {
-  if (/^[12][A-L]$/.test(slot)) return `${slot[0]}. miejsce grupa ${slot[1]}`;
-  if (/^3[A-L]+$/.test(slot)) return `najlepsza 3. drużyna z ${slot.slice(1).split('').join('/')}`;
-  if (/^[WL]\d+$/.test(slot)) return `${slot[0] === 'W' ? 'zwycięzca' : 'przegrany'} M${slot.slice(1)}`;
+function actualLoser(match, result) {
+  if (!match || !result || result.home_score === null || result.away_score === null || result.home_score === result.away_score) return null;
+  return result.home_score > result.away_score ? match.awayTeam : match.homeTeam;
+}
+
+function slotPlaceholder(slot) {
+  if (/^W\d+$/.test(slot)) return `Zwycięzca M${slot.slice(1)}`;
+  if (/^L\d+$/.test(slot)) return `Przegrany M${slot.slice(1)}`;
   return slot;
 }
 
-function getPotentialLabel(slot, tables, thirdMap, byNo) {
-  if (/^[12][A-L]$/.test(slot)) {
-    const rank = Number(slot[0]);
-    const group = slot[1];
-    const team = tables[group]?.[rank - 1];
-    return team ? team.name : `${rank}. grupa ${group}`;
-  }
-  if (/^3[A-L]+$/.test(slot)) {
-    const team = thirdMap.get(slot);
-    return team ? team.name : `3. ${slot.slice(1).split('').join('/')}`;
-  }
-  if (/^[WL]\d+$/.test(slot)) {
-    const prevNo = Number(slot.slice(1));
-    const prev = byNo.get(prevNo);
-    if (prev) {
-      if (slot[0] === 'W') {
-        const winner = prev.pick ? pickWinner(prev, prev.pick) : null;
-        if (winner) return winner.name;
-        if (prev.homeTeam && prev.awayTeam) return `${prev.homeTeam.name}/${prev.awayTeam.name}`;
-      } else {
-        const loser = prev.pick ? pickLoser(prev, prev.pick) : null;
-        if (loser) return loser.name;
-        if (prev.homeTeam && prev.awayTeam) return `${prev.homeTeam.name}/${prev.awayTeam.name}`;
-      }
-    }
-    return `${slot[0] === 'W' ? 'Zwycięzca' : 'Przegrany'} M${prevNo}`;
-  }
-  return slot;
-}
+// Wspólna drabinka pucharowa.
+// Drużyny w 1/16 są stałe (R32_PAIRS), a awans w kolejnych rundach wynika WYŁĄCZNIE
+// z rzeczywistych wyników wpisanych przez admina (knockout_results) - nigdy z typów
+// użytkownika. Gdy podamy userId, na każdy mecz nakładamy typ użytkownika i punkty.
+async function buildKnockout(userId = null) {
+  const teams = await all('SELECT * FROM teams');
+  const nameToTeam = new Map(teams.map((team) => [team.name, team]));
+  const resultRows = await all('SELECT * FROM knockout_results');
+  const resultMap = new Map(resultRows.map((row) => [row.match_no, row]));
 
-function resolveInitialSlot(slot, tables, thirdMap) {
-  if (/^[12][A-L]$/.test(slot)) {
-    const rank = Number(slot[0]);
-    const group = slot[1];
-    return tables[group]?.[rank - 1] || null;
+  let pickMap = new Map();
+  if (userId != null) {
+    const picks = await all('SELECT * FROM knockout_picks WHERE user_id = ?', [userId]);
+    pickMap = new Map(picks.map((pick) => [pick.match_no, pick]));
   }
-  if (/^3[A-L]+$/.test(slot)) return thirdMap.get(slot) || null;
-  return null;
-}
 
-function pickWinner(match, pick) {
-  if (!pick || pick.home_score === null || pick.away_score === null || pick.home_score === pick.away_score) return null;
-  return pick.home_score > pick.away_score ? match.homeTeam : match.awayTeam;
-}
-
-function pickLoser(match, pick) {
-  if (!pick || pick.home_score === null || pick.away_score === null || pick.home_score === pick.away_score) return null;
-  return pick.home_score > pick.away_score ? match.awayTeam : match.homeTeam;
-}
-
-async function buildBracket(userId) {
-  const { tables, complete, completedPicks, totalGroupMatches } = await calculateGroupTables(userId);
-  const picks = await all('SELECT * FROM knockout_picks WHERE user_id = ?', [userId]);
-  const pickMap = new Map(picks.map((pick) => [pick.match_no, pick]));
-  const thirdSlots = ROUND32.map((match) => [match.homeSlot, match.awaySlot]).flat().filter((slot) => /^3/.test(slot));
-  const thirds = GROUPS.map((group) => tables[group]?.[2]).filter(Boolean).sort(compareThirds).slice(0, 8);
-  const assignedThirds = chooseThirdAssignments(thirds, thirdSlots);
-  const thirdMap = new Map(thirdSlots.map((slot, index) => [slot, assignedThirds[index] || null]));
   const byNo = new Map();
   const bracket = [];
 
@@ -212,27 +161,38 @@ async function buildBracket(userId) {
     let homeTeam = null;
     let awayTeam = null;
     if (spec.no <= 88) {
-      homeTeam = complete ? resolveInitialSlot(spec.homeSlot, tables, thirdMap) : null;
-      awayTeam = complete ? resolveInitialSlot(spec.awaySlot, tables, thirdMap) : null;
+      const pair = R32_PAIRS[spec.no] || [];
+      homeTeam = nameToTeam.get(pair[0]) || null;
+      awayTeam = nameToTeam.get(pair[1]) || null;
     } else {
       const resolvePrev = (slot) => {
-        const prev = byNo.get(Number(slot.slice(1)));
-        const prevPick = pickMap.get(Number(slot.slice(1)));
-        return slot[0] === 'W' ? pickWinner(prev, prevPick) : pickLoser(prev, prevPick);
+        const prevNo = Number(slot.slice(1));
+        const prev = byNo.get(prevNo);
+        const prevResult = resultMap.get(prevNo) || null;
+        return slot[0] === 'W' ? actualWinner(prev, prevResult) : actualLoser(prev, prevResult);
       };
       homeTeam = resolvePrev(spec.homeSlot);
       awayTeam = resolvePrev(spec.awaySlot);
     }
-    const pick = pickMap.get(spec.no) || null;
-    
-    // Budujemy tymczasowy obiekt meczu (aby getPotentialLabel działało prawidłowo)
-    const tempMatch = { ...spec, homeTeam, awayTeam, pick };
-    byNo.set(spec.no, tempMatch);
 
-    const homeLabel = getPotentialLabel(spec.homeSlot, tables, thirdMap, byNo);
-    const awayLabel = getPotentialLabel(spec.awaySlot, tables, thirdMap, byNo);
+    const resultRow = resultMap.get(spec.no) || null;
+    const result = resultRow && resultRow.home_score !== null && resultRow.away_score !== null
+      ? { home_score: resultRow.home_score, away_score: resultRow.away_score }
+      : null;
+    const locked = resultRow ? !!resultRow.locked : false;
+    const pickRow = pickMap.get(spec.no) || null;
+    const pick = pickRow ? { home_score: pickRow.home_score, away_score: pickRow.away_score } : null;
 
-    const match = { ...tempMatch, homeLabel, awayLabel };
+    const homeLabel = homeTeam ? homeTeam.name
+      : (spec.no <= 88 ? (R32_PAIRS[spec.no]?.[0] || spec.homeSlot) : slotPlaceholder(spec.homeSlot));
+    const awayLabel = awayTeam ? awayTeam.name
+      : (spec.no <= 88 ? (R32_PAIRS[spec.no]?.[1] || spec.awaySlot) : slotPlaceholder(spec.awaySlot));
+
+    const known = !!(homeTeam && awayTeam);
+    const editable = known && !result && !locked;
+    const points = (result && pick) ? pickPoints(result, pick) : null;
+
+    const match = { ...spec, homeTeam, awayTeam, homeLabel, awayLabel, result, pick, locked, known, editable, points };
     byNo.set(spec.no, match);
     bracket.push(match);
   }
@@ -242,56 +202,18 @@ async function buildBracket(userId) {
     rounds[match.round] ||= [];
     rounds[match.round].push(match);
   }
-  const champion = pickWinner(byNo.get(104), pickMap.get(104));
-  return { tables, complete, completedPicks, totalGroupMatches, rounds, champion };
+  const champion = actualWinner(byNo.get(104), resultMap.get(104) || null);
+  return { rounds, byNo, champion, complete: true, completedPicks: 72, totalGroupMatches: 72 };
 }
 
-async function buildOfficialBracket(userId) {
-  const { tables, playedMatches } = await calculateActualGroupTables();
-  const complete = playedMatches === 72;
-  const picks = await all('SELECT * FROM knockout_picks WHERE user_id = ?', [userId]);
-  const pickMap = new Map(picks.map((pick) => [pick.match_no, pick]));
-  const thirdSlots = ROUND32.map((match) => [match.homeSlot, match.awaySlot]).flat().filter((slot) => /^3/.test(slot));
-  const thirds = GROUPS.map((group) => tables[group]?.[2]).filter(Boolean).sort(compareThirds).slice(0, 8);
-  const assignedThirds = chooseThirdAssignments(thirds, thirdSlots);
-  const thirdMap = new Map(thirdSlots.map((slot, index) => [slot, assignedThirds[index] || null]));
-  const byNo = new Map();
-  const bracket = [];
-
-  for (const spec of KNOCKOUT) {
-    let homeTeam = null;
-    let awayTeam = null;
-    if (spec.no <= 88) {
-      homeTeam = complete ? resolveInitialSlot(spec.homeSlot, tables, thirdMap) : null;
-      awayTeam = complete ? resolveInitialSlot(spec.awaySlot, tables, thirdMap) : null;
-    } else {
-      const resolvePrev = (slot) => {
-        const prev = byNo.get(Number(slot.slice(1)));
-        const prevPick = pickMap.get(Number(slot.slice(1)));
-        return slot[0] === 'W' ? pickWinner(prev, prevPick) : pickLoser(prev, prevPick);
-      };
-      homeTeam = resolvePrev(spec.homeSlot);
-      awayTeam = resolvePrev(spec.awaySlot);
-    }
-    const pick = pickMap.get(spec.no) || null;
-    const tempMatch = { ...spec, homeTeam, awayTeam, pick };
-    byNo.set(spec.no, tempMatch);
-
-    const homeLabel = getPotentialLabel(spec.homeSlot, tables, thirdMap, byNo);
-    const awayLabel = getPotentialLabel(spec.awaySlot, tables, thirdMap, byNo);
-
-    const match = { ...tempMatch, homeLabel, awayLabel };
-    byNo.set(spec.no, match);
-    bracket.push(match);
-  }
-
-  const rounds = {};
-  for (const match of bracket) {
-    rounds[match.round] ||= [];
-    rounds[match.round].push(match);
-  }
-  const champion = pickWinner(byNo.get(104), pickMap.get(104));
-  return { tables, complete, completedPicks: playedMatches, totalGroupMatches: 72, rounds, champion };
+// Wspólna, oficjalna drabinka (bez nakładki typów konkretnego użytkownika).
+function buildActualKnockout() {
+  return buildKnockout(null);
 }
 
-module.exports = { calculateGroupTables, calculateActualGroupTables, buildBracket, buildOfficialBracket, KNOCKOUT };
+// Ta sama drabinka co wspólna, ale z nałożonymi typami i punktami danego użytkownika.
+function buildUserKnockout(userId) {
+  return buildKnockout(userId);
+}
+
+module.exports = { calculateGroupTables, calculateActualGroupTables, buildActualKnockout, buildUserKnockout, KNOCKOUT };

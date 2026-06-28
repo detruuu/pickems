@@ -126,14 +126,15 @@ sudo systemctl reload nginx
 
 Seed zawiera grupy A-L oraz mecze fazy grupowej MŚ 2026. Po uruchomieniu `npm run seed` istniejące typy są czyszczone, a tabele `teams` i `matches` są ładowane od nowa.
 
-W aplikacji dodano podstronę `/bracket` z automatyczną drabinką. Mechanizm działa tak:
+Podstrona `/bracket` to **wspólna drabinka pucharowa, taka sama dla wszystkich graczy**. Mechanizm:
 
-1. Użytkownik wpisuje typy wszystkich 72 meczów fazy grupowej.
-2. Aplikacja wylicza tabele grup: punkty, bilans bramek, bramki zdobyte.
-3. Aplikacja wybiera pierwsze i drugie miejsca z grup oraz 8 najlepszych drużyn z trzecich miejsc.
-4. Drużyny są podstawiane do oficjalnych slotów 1/16 finału.
-5. Po zapisaniu wyniku meczu pucharowego zwycięzca automatycznie pojawia się w kolejnej rundzie.
-6. Po półfinałach aplikacja uzupełnia finał oraz mecz o 3. miejsce.
+1. Pary 1/16 finału są **stałe** — zdefiniowane na sztywno w `src/bracket_logic.js` (`R32_PAIRS`, mecze 73–88). Nie wynikają z typów grupowych użytkownika.
+2. O awansie w kolejnych rundach decydują **wyłącznie rzeczywiste wyniki wpisywane przez admina** (tabela `knockout_results`), a nie typy użytkowników. Przykład: jeśli admin wpisze 2:1 dla gospodarza, to u każdego gracza dalej awansuje gospodarz — niezależnie od tego, kogo gracz obstawił.
+3. Drużyny w danej rundzie pojawiają się dopiero, gdy admin rozstrzygnie poprzednią rundę (drabinka wypełnia się stopniowo).
+4. Użytkownik typuje wynik każdego meczu pucharowego (gdy znane są obie drużyny). Typ służy tylko do punktów i nie zmienia tego, kto awansuje.
+5. Typy pucharowe są punktowane w rankingu tak samo jak grupowe (2 pkt dokładny wynik, 1 pkt trafiony rezultat), wg rzeczywistych wyników admina.
+
+Strukturę drzewa dalszych rund (1/8 → finał) definiuje stała `KNOCKOUT` w `src/bracket_logic.js`. W fazie pucharowej każdy mecz musi mieć zwycięzcę (admin wpisuje wynik rozstrzygnięty, np. po karnych).
 
 W przypadku remisów w tabeli grup aplikacja stosuje uproszczony tie-breaker: punkty, bilans bramek, bramki zdobyte, nazwa drużyny. Nie ma jeszcze pełnych kryteriów FIFA typu wyniki bezpośrednie i fair play.
 
@@ -145,8 +146,8 @@ W tej wersji seed danych zawiera:
 - 72 mecze fazy grupowej,
 - flagi emoji przy reprezentacjach,
 - godziny rozpoczęcia meczów w czasie polskim (Europe/Warsaw, CEST), zarówno dla fazy grupowej (`scripts/seed.js`), jak i pucharowej (`src/bracket_logic.js`),
-- oficjalne sloty fazy pucharowej od meczu 73 do finału,
-- automatyczne przechodzenie zwycięzców przez 1/16 finału, 1/8 finału, ćwierćfinały, półfinały i finał.
+- stałe pary 1/16 finału (mecze 73–88) wspólne dla wszystkich graczy,
+- sloty fazy pucharowej od 1/16 do finału, w których zwycięzcy przechodzą dalej na podstawie rzeczywistych wyników admina (panel admina → sekcja „Faza pucharowa").
 
 ## Zapis pickemów jednym przyciskiem
 
