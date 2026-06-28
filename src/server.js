@@ -40,7 +40,7 @@ app.use('/admin', require('./routes/admin'));
 app.use((req, res) => res.status(404).render('error', { message: 'Nie znaleziono strony.' }));
 
 init().then(syncConfiguredUsers).then(() => {
-  app.listen(port, () => console.log(`Pickems 2026 listening on http://localhost:${port}`));
+  app.listen(port, '0.0.0.0', () => console.log(`Pickems 2026 listening on http://0.0.0.0:${port}`));
 }).catch((err) => {
   console.error('Database initialization failed:', err);
   process.exit(1);

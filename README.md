@@ -18,37 +18,6 @@ Prosta aplikacja webowa do typowania Mistrzostw Świata 2026 od fazy grupowej.
 
 ## Konfiguracja 3 użytkowników przed startem
 
-Przed publicznym uruchomieniem uzupełnij plik:
-
-```text
-src/config_allowed_users.js
-```
-
-W pliku są trzy konta z wartościami `TODO`. Zmień je na docelowe loginy i hasła:
-
-```js
-module.exports = [
-  {
-    login: 'damian',
-    password: 'tu-wpisz-mocne-haslo',
-    name: 'Damian',
-    role: 'admin'
-  },
-  {
-    login: 'user1',
-    password: 'tu-wpisz-mocne-haslo',
-    name: 'Użytkownik 1',
-    role: 'user'
-  },
-  {
-    login: 'user2',
-    password: 'tu-wpisz-mocne-haslo',
-    name: 'Użytkownik 2',
-    role: 'user'
-  }
-];
-```
-
 Aplikacja synchronizuje bazę z tym plikiem przy starcie. Oznacza to, że:
 
 - można zalogować się tylko loginami wpisanymi w `src/config_allowed_users.js`,
@@ -60,23 +29,35 @@ Hasła w tym pliku są tekstowe, więc nie wrzucaj repozytorium publicznie. W ba
 
 ## Punktacja
 
-- 3 pkt za dokładny wynik,
+- 2 pkt za dokładny wynik,
 - 1 pkt za poprawny rezultat meczu: wygrana/remis/przegrana,
 - 0 pkt w pozostałych przypadkach.
 
+W rankingu (`/ranking`) odejmowany jest stały baseline za 8 pominiętych meczów (`SKIPNIETE_MECZE`), tak aby pierwsze rozegrane spotkania nie zawyżały wyników wszystkich graczy. Kolumny tabeli to: punkty, dokładne wyniki oraz niedokładne wyniki (trafiony rezultat bez dokładnego wyniku).
+
 ## Uruchomienie lokalne
 
+Utwórz plik `.env` w katalogu głównym, np.:
+
+```text
+PORT=6767
+SESSION_SECRET=zmien-na-mocny-sekret
+NODE_ENV=development
+```
+
+Następnie:
+
 ```bash
-cp .env.example .env
 npm install
 npm run seed
 npm start
 ```
 
-Aplikacja będzie dostępna pod:
+Domyślny port to `6767`, a serwer nasłuchuje na `0.0.0.0`, więc jest dostępny także z innych urządzeń w sieci lokalnej:
 
 ```text
-http://localhost:3000
+http://localhost:6767
+http://ADRES-IP-HOSTA:6767
 ```
 
 ## Struktura
@@ -98,7 +79,7 @@ scripts/seed.js               dane meczów i drużyn
 1. Zainstaluj Node.js 20 LTS, Nginx i Git.
 2. Skopiuj projekt na serwer, np. do `/var/www/pickems2026`.
 3. Uzupełnij `src/config_allowed_users.js` trzema kontami.
-4. Utwórz `.env` na podstawie `.env.example` i ustaw mocny `SESSION_SECRET`.
+4. Utwórz `.env` i ustaw mocny `SESSION_SECRET`, `PORT` oraz `NODE_ENV=production`.
 5. Uruchom:
 
 ```bash
@@ -124,7 +105,7 @@ server {
     server_name _;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:6767;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -163,6 +144,7 @@ W tej wersji seed danych zawiera:
 - oficjalne grupy A-L MŚ 2026,
 - 72 mecze fazy grupowej,
 - flagi emoji przy reprezentacjach,
+- godziny rozpoczęcia meczów w czasie polskim (Europe/Warsaw, CEST), zarówno dla fazy grupowej (`scripts/seed.js`), jak i pucharowej (`src/bracket_logic.js`),
 - oficjalne sloty fazy pucharowej od meczu 73 do finału,
 - automatyczne przechodzenie zwycięzców przez 1/16 finału, 1/8 finału, ćwierćfinały, półfinały i finał.
 

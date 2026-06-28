@@ -26,7 +26,7 @@ const readonly = typeof viewingUser !== "undefined" && viewingUser !== null;
           if (match.home_score !== null && match.away_score !== null) {
             if (match.pick_home_score !== null && match.pick_away_score !== null) {
               const pts = pickPoints(match, { home_score: match.pick_home_score, away_score: match.pick_away_score });
-              if (pts === 3) {
+              if (pts === 2) {
                 rowBg = "background-color: rgba(34, 197, 94, 0.45) !important;";
               } else if (pts === 1) {
                 rowBg = "background-color: rgba(187, 247, 208, 0.50) !important;";

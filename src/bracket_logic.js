@@ -2,43 +2,44 @@ const { all, get } = require('./db');
 
 const GROUPS = 'ABCDEFGHIJKL'.split('');
 
+// kickoff_at values are stored in Polish local time (Europe/Warsaw, CEST).
 const ROUND32 = [
-  { no: 73, round: '1/16 finału', homeSlot: '2A', awaySlot: '2B', kickoff_at: '2026-06-28 18:00' },
-  { no: 74, round: '1/16 finału', homeSlot: '1E', awaySlot: '3ABCDF', kickoff_at: '2026-06-28 21:00' },
-  { no: 75, round: '1/16 finału', homeSlot: '1F', awaySlot: '2C', kickoff_at: '2026-06-29 18:00' },
-  { no: 76, round: '1/16 finału', homeSlot: '1C', awaySlot: '2F', kickoff_at: '2026-06-29 21:00' },
-  { no: 77, round: '1/16 finału', homeSlot: '1I', awaySlot: '3CDFGH', kickoff_at: '2026-06-30 18:00' },
-  { no: 78, round: '1/16 finału', homeSlot: '2E', awaySlot: '2I', kickoff_at: '2026-06-30 21:00' },
-  { no: 79, round: '1/16 finału', homeSlot: '1A', awaySlot: '3CEFHI', kickoff_at: '2026-07-01 18:00' },
-  { no: 80, round: '1/16 finału', homeSlot: '1L', awaySlot: '3EHIJK', kickoff_at: '2026-07-01 21:00' },
-  { no: 81, round: '1/16 finału', homeSlot: '1D', awaySlot: '3BEFIJ', kickoff_at: '2026-07-02 18:00' },
-  { no: 82, round: '1/16 finału', homeSlot: '1G', awaySlot: '3AEHIJ', kickoff_at: '2026-07-02 21:00' },
-  { no: 83, round: '1/16 finału', homeSlot: '2K', awaySlot: '2L', kickoff_at: '2026-07-03 18:00' },
-  { no: 84, round: '1/16 finału', homeSlot: '1H', awaySlot: '2J', kickoff_at: '2026-07-03 21:00' },
-  { no: 85, round: '1/16 finału', homeSlot: '1B', awaySlot: '3EFGIJ', kickoff_at: '2026-07-04 18:00' },
-  { no: 86, round: '1/16 finału', homeSlot: '1J', awaySlot: '2H', kickoff_at: '2026-07-04 21:00' },
-  { no: 87, round: '1/16 finału', homeSlot: '1K', awaySlot: '3DEIJL', kickoff_at: '2026-07-05 18:00' },
-  { no: 88, round: '1/16 finału', homeSlot: '2D', awaySlot: '2G', kickoff_at: '2026-07-05 21:00' }
+  { no: 73, round: '1/16 finału', homeSlot: '2A', awaySlot: '2B', kickoff_at: '2026-06-28 21:00' },
+  { no: 74, round: '1/16 finału', homeSlot: '1E', awaySlot: '3ABCDF', kickoff_at: '2026-06-29 22:30' },
+  { no: 75, round: '1/16 finału', homeSlot: '1F', awaySlot: '2C', kickoff_at: '2026-06-30 03:00' },
+  { no: 76, round: '1/16 finału', homeSlot: '1C', awaySlot: '2F', kickoff_at: '2026-06-29 19:00' },
+  { no: 77, round: '1/16 finału', homeSlot: '1I', awaySlot: '3CDFGH', kickoff_at: '2026-06-30 23:00' },
+  { no: 78, round: '1/16 finału', homeSlot: '2E', awaySlot: '2I', kickoff_at: '2026-06-30 19:00' },
+  { no: 79, round: '1/16 finału', homeSlot: '1A', awaySlot: '3CEFHI', kickoff_at: '2026-07-01 03:00' },
+  { no: 80, round: '1/16 finału', homeSlot: '1L', awaySlot: '3EHIJK', kickoff_at: '2026-07-01 18:00' },
+  { no: 81, round: '1/16 finału', homeSlot: '1D', awaySlot: '3BEFIJ', kickoff_at: '2026-07-02 02:00' },
+  { no: 82, round: '1/16 finału', homeSlot: '1G', awaySlot: '3AEHIJ', kickoff_at: '2026-07-01 22:00' },
+  { no: 83, round: '1/16 finału', homeSlot: '2K', awaySlot: '2L', kickoff_at: '2026-07-03 01:00' },
+  { no: 84, round: '1/16 finału', homeSlot: '1H', awaySlot: '2J', kickoff_at: '2026-07-02 21:00' },
+  { no: 85, round: '1/16 finału', homeSlot: '1B', awaySlot: '3EFGIJ', kickoff_at: '2026-07-03 05:00' },
+  { no: 86, round: '1/16 finału', homeSlot: '1J', awaySlot: '2H', kickoff_at: '2026-07-04 00:00' },
+  { no: 87, round: '1/16 finału', homeSlot: '1K', awaySlot: '3DEIJL', kickoff_at: '2026-07-04 03:30' },
+  { no: 88, round: '1/16 finału', homeSlot: '2D', awaySlot: '2G', kickoff_at: '2026-07-03 20:00' }
 ];
 
 const KNOCKOUT = [
   ...ROUND32,
-  { no: 89, round: '1/8 finału', homeSlot: 'W74', awaySlot: 'W77', kickoff_at: '2026-07-06 18:00' },
-  { no: 90, round: '1/8 finału', homeSlot: 'W73', awaySlot: 'W75', kickoff_at: '2026-07-06 21:00' },
-  { no: 91, round: '1/8 finału', homeSlot: 'W76', awaySlot: 'W78', kickoff_at: '2026-07-07 18:00' },
-  { no: 92, round: '1/8 finału', homeSlot: 'W79', awaySlot: 'W80', kickoff_at: '2026-07-07 21:00' },
-  { no: 93, round: '1/8 finału', homeSlot: 'W83', awaySlot: 'W84', kickoff_at: '2026-07-08 18:00' },
-  { no: 94, round: '1/8 finału', homeSlot: 'W81', awaySlot: 'W82', kickoff_at: '2026-07-08 21:00' },
-  { no: 95, round: '1/8 finału', homeSlot: 'W86', awaySlot: 'W88', kickoff_at: '2026-07-09 18:00' },
-  { no: 96, round: '1/8 finału', homeSlot: 'W85', awaySlot: 'W87', kickoff_at: '2026-07-09 21:00' },
-  { no: 97, round: 'Ćwierćfinał', homeSlot: 'W89', awaySlot: 'W90', kickoff_at: '2026-07-10 18:00' },
+  { no: 89, round: '1/8 finału', homeSlot: 'W74', awaySlot: 'W77', kickoff_at: '2026-07-04 23:00' },
+  { no: 90, round: '1/8 finału', homeSlot: 'W73', awaySlot: 'W75', kickoff_at: '2026-07-04 19:00' },
+  { no: 91, round: '1/8 finału', homeSlot: 'W76', awaySlot: 'W78', kickoff_at: '2026-07-05 22:00' },
+  { no: 92, round: '1/8 finału', homeSlot: 'W79', awaySlot: 'W80', kickoff_at: '2026-07-06 02:00' },
+  { no: 93, round: '1/8 finału', homeSlot: 'W83', awaySlot: 'W84', kickoff_at: '2026-07-06 21:00' },
+  { no: 94, round: '1/8 finału', homeSlot: 'W81', awaySlot: 'W82', kickoff_at: '2026-07-07 02:00' },
+  { no: 95, round: '1/8 finału', homeSlot: 'W86', awaySlot: 'W88', kickoff_at: '2026-07-07 18:00' },
+  { no: 96, round: '1/8 finału', homeSlot: 'W85', awaySlot: 'W87', kickoff_at: '2026-07-07 22:00' },
+  { no: 97, round: 'Ćwierćfinał', homeSlot: 'W89', awaySlot: 'W90', kickoff_at: '2026-07-09 22:00' },
   { no: 98, round: 'Ćwierćfinał', homeSlot: 'W93', awaySlot: 'W94', kickoff_at: '2026-07-10 21:00' },
-  { no: 99, round: 'Ćwierćfinał', homeSlot: 'W91', awaySlot: 'W92', kickoff_at: '2026-07-11 18:00' },
-  { no: 100, round: 'Ćwierćfinał', homeSlot: 'W95', awaySlot: 'W96', kickoff_at: '2026-07-11 21:00' },
-  { no: 101, round: 'Półfinał', homeSlot: 'W97', awaySlot: 'W98', kickoff_at: '2026-07-13 20:00' },
-  { no: 102, round: 'Półfinał', homeSlot: 'W99', awaySlot: 'W100', kickoff_at: '2026-07-14 20:00' },
-  { no: 103, round: 'Mecz o 3. miejsce', homeSlot: 'L101', awaySlot: 'L102', kickoff_at: '2026-07-18 16:00' },
-  { no: 104, round: 'Finał', homeSlot: 'W101', awaySlot: 'W102', kickoff_at: '2026-07-19 20:00' }
+  { no: 99, round: 'Ćwierćfinał', homeSlot: 'W91', awaySlot: 'W92', kickoff_at: '2026-07-11 23:00' },
+  { no: 100, round: 'Ćwierćfinał', homeSlot: 'W95', awaySlot: 'W96', kickoff_at: '2026-07-12 03:00' },
+  { no: 101, round: 'Półfinał', homeSlot: 'W97', awaySlot: 'W98', kickoff_at: '2026-07-14 21:00' },
+  { no: 102, round: 'Półfinał', homeSlot: 'W99', awaySlot: 'W100', kickoff_at: '2026-07-15 21:00' },
+  { no: 103, round: 'Mecz o 3. miejsce', homeSlot: 'L101', awaySlot: 'L102', kickoff_at: '2026-07-18 23:00' },
+  { no: 104, round: 'Finał', homeSlot: 'W101', awaySlot: 'W102', kickoff_at: '2026-07-19 21:00' }
 ];
 
 function baseStats(team) {

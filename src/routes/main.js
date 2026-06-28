@@ -203,13 +203,16 @@ router.get('/ranking', requireAuth, async (req, res, next) => {
     for (const user of users) {
       const records = await all(`SELECT m.home_score, m.away_score, p.home_score AS pick_home_score, p.away_score AS pick_away_score
         FROM matches m LEFT JOIN picks p ON p.match_id = m.id AND p.user_id = ?`, [user.id]);
-      let total = 0;
-      let exact = 0;
+	
+      const SKIPNIETE_MECZE = 8;
+
+      let total = SKIPNIETE_MECZE*(-2);
+      let exact = SKIPNIETE_MECZE*(-1);
       let outcome = 0;
       for (const r of records) {
         const points = pickPoints(r, r.pick_home_score === null ? null : { home_score: r.pick_home_score, away_score: r.pick_away_score });
         total += points;
-        if (points === 3) exact += 1;
+        if (points === 2) exact += 1;
         if (points === 1) outcome += 1;
       }
       rows.push({ ...user, total, exact, outcome });

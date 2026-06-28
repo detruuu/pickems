@@ -100,7 +100,7 @@ function matchOutcome(home, away) {
 
 function pickPoints(match, pick) {
   if (match.home_score === null || match.away_score === null || !pick) return 0;
-  if (match.home_score === pick.home_score && match.away_score === pick.away_score) return 3;
+  if (match.home_score === pick.home_score && match.away_score === pick.away_score) return 2;
   return matchOutcome(match.home_score, match.away_score) === matchOutcome(pick.home_score, pick.away_score) ? 1 : 0;
 }
 

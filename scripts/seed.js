@@ -77,19 +77,103 @@ const groups = {
   ]
 };
 
+// kickoff_at values are Europe/Warsaw local time (CEST during World Cup 2026).
 const fixtures = [
-  ['A','Meksyk','RPA','2026-06-11 21:00'], ['A','Korea Południowa','Czechy','2026-06-12 6:00'], ['A','Czechy','RPA','2026-06-18 3:00'], ['A','Meksyk','Korea Południowa','2026-06-18 6:00'], ['A','Czechy','Meksyk','2026-06-24 6:00'], ['A','RPA','Korea Południowa','2026-06-24 6:00'],
-  ['B','Kanada','Bośnia i Hercegowina','2026-06-12 21:00'], ['B','Katar','Szwajcaria','2026-06-13 6:00'], ['B','Szwajcaria','Bośnia i Hercegowina','2026-06-18 21:00'], ['B','Kanada','Katar','2026-06-18 00:00'], ['B','Szwajcaria','Kanada','2026-06-24 21:00'], ['B','Bośnia i Hercegowina','Katar','2026-06-24 21:00'],
-  ['C','Brazylia','Maroko','2026-06-13 21:00'], ['C','Haiti','Szkocja','2026-06-14 3:00'], ['C','Brazylia','Haiti','2026-06-19 3:00'], ['C','Szkocja','Maroko','2026-06-19 6:00'], ['C','Szkocja','Brazylia','2026-06-24 00:00'], ['C','Maroko','Haiti','2026-06-24 00:00'],
-  ['D','USA','Paragwaj','2026-06-13 00:00'], ['D','Australia','Turcja','2026-06-14 6:00'], ['D','USA','Australia','2026-06-19 21:00'], ['D','Turcja','Paragwaj','2026-06-19 00:00'], ['D','Turcja','USA','2026-06-25 6:00'], ['D','Paragwaj','Australia','2026-06-25 6:00'],
-  ['E','Niemcy','Curaçao','2026-06-14 21:00'], ['E',"Wybrzeże Kości Słoniowej",'Ekwador','2026-06-15 3:00'], ['E','Niemcy',"Wybrzeże Kości Słoniowej",'2026-06-20 3:00'], ['E','Ekwador','Curaçao','2026-06-20 6:00'], ['E','Curaçao',"Wybrzeże Kości Słoniowej",'2026-06-25 21:00'], ['E','Ekwador','Niemcy','2026-06-25 21:00'],
-  ['F','Holandia','Japonia','2026-06-14 00:00'], ['F','Szwecja','Tunezja','2026-06-15 6:00'], ['F','Holandia','Szwecja','2026-06-20 21:00'], ['F','Tunezja','Japonia','2026-06-20 00:00'], ['F','Tunezja','Holandia','2026-06-25 00:00'], ['F','Japonia','Szwecja','2026-06-25 00:00'],
-  ['G','Belgia','Egipt','2026-06-15 21:00'], ['G','Iran','Nowa Zelandia','2026-06-16 3:00'], ['G','Belgia','Iran','2026-06-21 3:00'], ['G','Nowa Zelandia','Egipt','2026-06-21 6:00'], ['G','Nowa Zelandia','Belgia','2026-06-26 6:00'], ['G','Egipt','Iran','2026-06-26 6:00'],
-  ['H','Hiszpania','Wyspy Zielonego Przylądka','2026-06-15 00:00'], ['H','Arabia Saudyjska','Urugwaj','2026-06-15 3:00'], ['H','Urugwaj','Wyspy Zielonego Przylądka','2026-06-21 21:00'], ['H','Hiszpania','Arabia Saudyjska','2026-06-21 00:00'], ['H','Wyspy Zielonego Przylądka','Arabia Saudyjska','2026-06-26 21:00'], ['H','Urugwaj','Hiszpania','2026-06-26 21:00'],
-  ['I','Francja','Senegal','2026-06-16 6:00'], ['I','Irak','Norwegia','2026-06-16 21:00'], ['I','Norwegia','Senegal','2026-06-22 3:00'], ['I','Francja','Irak','2026-06-22 6:00'], ['I','Norwegia','Francja','2026-06-26 00:00'], ['I','Senegal','Irak','2026-06-26 00:00'],
-  ['J','Argentyna','Algieria','2026-06-17 3:00'], ['J','Austria','Jordania','2026-06-17 6:00'], ['J','Argentyna','Austria','2026-06-22 21:00'], ['J','Jordania','Algieria','2026-06-22 00:00'], ['J','Algieria','Austria','2026-06-27 6:00'], ['J','Jordania','Argentyna','2026-06-27 6:00'],
-  ['K','Portugalia','DR Konga','2026-06-17 21:00'], ['K','Uzbekistan','Kolumbia','2026-06-17 00:00'], ['K','Portugalia','Uzbekistan','2026-06-23 3:00'], ['K','Kolumbia','DR Konga','2026-06-23 6:00'], ['K','Kolumbia','Portugalia','2026-06-27 21:00'], ['K','DR Konga','Uzbekistan','2026-06-27 21:00'],
-  ['L','Anglia','Chorwacja','2026-06-17 3:00'], ['L','Ghana','Panama','2026-06-17 6:00'], ['L','Anglia','Ghana','2026-06-23 21:00'], ['L','Panama','Chorwacja','2026-06-23 00:00'], ['L','Panama','Anglia','2026-06-27 00:00'], ['L','Chorwacja','Ghana','2026-06-27 00:00']
+  // Group A
+  ['A', 'Meksyk', 'RPA', '2026-06-11 21:00'],
+  ['A', 'Korea Południowa', 'Czechy', '2026-06-12 04:00'],
+  ['A', 'Czechy', 'RPA', '2026-06-18 18:00'],
+  ['A', 'Meksyk', 'Korea Południowa', '2026-06-19 03:00'],
+  ['A', 'Czechy', 'Meksyk', '2026-06-25 03:00'],
+  ['A', 'RPA', 'Korea Południowa', '2026-06-25 03:00'],
+
+  // Group B
+  ['B', 'Kanada', 'Bośnia i Hercegowina', '2026-06-12 21:00'],
+  ['B', 'Katar', 'Szwajcaria', '2026-06-13 21:00'],
+  ['B', 'Szwajcaria', 'Bośnia i Hercegowina', '2026-06-18 21:00'],
+  ['B', 'Kanada', 'Katar', '2026-06-19 00:00'],
+  ['B', 'Szwajcaria', 'Kanada', '2026-06-24 21:00'],
+  ['B', 'Bośnia i Hercegowina', 'Katar', '2026-06-24 21:00'],
+
+  // Group C
+  ['C', 'Brazylia', 'Maroko', '2026-06-14 00:00'],
+  ['C', 'Haiti', 'Szkocja', '2026-06-14 03:00'],
+  ['C', 'Brazylia', 'Haiti', '2026-06-20 02:30'],
+  ['C', 'Szkocja', 'Maroko', '2026-06-20 00:00'],
+  ['C', 'Szkocja', 'Brazylia', '2026-06-25 00:00'],
+  ['C', 'Maroko', 'Haiti', '2026-06-25 00:00'],
+
+  // Group D
+  ['D', 'USA', 'Paragwaj', '2026-06-13 03:00'],
+  ['D', 'Australia', 'Turcja', '2026-06-14 06:00'],
+  ['D', 'USA', 'Australia', '2026-06-19 21:00'],
+  ['D', 'Turcja', 'Paragwaj', '2026-06-20 05:00'],
+  ['D', 'Turcja', 'USA', '2026-06-26 04:00'],
+  ['D', 'Paragwaj', 'Australia', '2026-06-26 04:00'],
+
+  // Group E
+  ['E', 'Niemcy', 'Curaçao', '2026-06-14 19:00'],
+  ['E', 'Wybrzeże Kości Słoniowej', 'Ekwador', '2026-06-15 01:00'],
+  ['E', 'Niemcy', 'Wybrzeże Kości Słoniowej', '2026-06-20 22:00'],
+  ['E', 'Ekwador', 'Curaçao', '2026-06-21 02:00'],
+  ['E', 'Curaçao', 'Wybrzeże Kości Słoniowej', '2026-06-25 22:00'],
+  ['E', 'Ekwador', 'Niemcy', '2026-06-25 22:00'],
+
+  // Group F
+  ['F', 'Holandia', 'Japonia', '2026-06-14 22:00'],
+  ['F', 'Szwecja', 'Tunezja', '2026-06-15 04:00'],
+  ['F', 'Holandia', 'Szwecja', '2026-06-20 19:00'],
+  ['F', 'Tunezja', 'Japonia', '2026-06-21 06:00'],
+  ['F', 'Tunezja', 'Holandia', '2026-06-26 01:00'],
+  ['F', 'Japonia', 'Szwecja', '2026-06-26 01:00'],
+
+  // Group G
+  ['G', 'Belgia', 'Egipt', '2026-06-15 21:00'],
+  ['G', 'Iran', 'Nowa Zelandia', '2026-06-16 03:00'],
+  ['G', 'Belgia', 'Iran', '2026-06-21 21:00'],
+  ['G', 'Nowa Zelandia', 'Egipt', '2026-06-22 03:00'],
+  ['G', 'Nowa Zelandia', 'Belgia', '2026-06-27 05:00'],
+  ['G', 'Egipt', 'Iran', '2026-06-27 05:00'],
+
+  // Group H
+  ['H', 'Hiszpania', 'Wyspy Zielonego Przylądka', '2026-06-15 18:00'],
+  ['H', 'Arabia Saudyjska', 'Urugwaj', '2026-06-16 00:00'],
+  ['H', 'Urugwaj', 'Wyspy Zielonego Przylądka', '2026-06-22 00:00'],
+  ['H', 'Hiszpania', 'Arabia Saudyjska', '2026-06-21 18:00'],
+  ['H', 'Wyspy Zielonego Przylądka', 'Arabia Saudyjska', '2026-06-27 02:00'],
+  ['H', 'Urugwaj', 'Hiszpania', '2026-06-27 02:00'],
+
+  // Group I
+  ['I', 'Francja', 'Senegal', '2026-06-16 21:00'],
+  ['I', 'Irak', 'Norwegia', '2026-06-17 00:00'],
+  ['I', 'Norwegia', 'Senegal', '2026-06-23 02:00'],
+  ['I', 'Francja', 'Irak', '2026-06-22 23:00'],
+  ['I', 'Norwegia', 'Francja', '2026-06-26 21:00'],
+  ['I', 'Senegal', 'Irak', '2026-06-26 21:00'],
+
+  // Group J
+  ['J', 'Argentyna', 'Algieria', '2026-06-17 03:00'],
+  ['J', 'Austria', 'Jordania', '2026-06-17 06:00'],
+  ['J', 'Argentyna', 'Austria', '2026-06-22 19:00'],
+  ['J', 'Jordania', 'Algieria', '2026-06-23 05:00'],
+  ['J', 'Algieria', 'Austria', '2026-06-28 04:00'],
+  ['J', 'Jordania', 'Argentyna', '2026-06-28 04:00'],
+
+  // Group K
+  ['K', 'Portugalia', 'DR Konga', '2026-06-17 19:00'],
+  ['K', 'Uzbekistan', 'Kolumbia', '2026-06-18 04:00'],
+  ['K', 'Portugalia', 'Uzbekistan', '2026-06-23 19:00'],
+  ['K', 'Kolumbia', 'DR Konga', '2026-06-24 04:00'],
+  ['K', 'Kolumbia', 'Portugalia', '2026-06-28 01:30'],
+  ['K', 'DR Konga', 'Uzbekistan', '2026-06-28 01:30'],
+
+  // Group L
+  ['L', 'Anglia', 'Chorwacja', '2026-06-17 22:00'],
+  ['L', 'Ghana', 'Panama', '2026-06-18 01:00'],
+  ['L', 'Anglia', 'Ghana', '2026-06-23 22:00'],
+  ['L', 'Panama', 'Chorwacja', '2026-06-24 01:00'],
+  ['L', 'Panama', 'Anglia', '2026-06-27 23:00'],
+  ['L', 'Chorwacja', 'Ghana', '2026-06-27 23:00']
 ];
 
 async function seed() {
@@ -114,7 +198,7 @@ async function seed() {
     await run('INSERT INTO matches (group_name, home_team_id, away_team_id, kickoff_at) VALUES (?, ?, ?, ?)', [groupName, home.id, away.id, kickoffAt]);
   }
 
-  console.log('Seed complete: official World Cup 2026 groups, flags and group-stage fixtures loaded. Existing picks were cleared. Kickoff times are date placeholders only.');
+  console.log('Seed complete: official World Cup 2026 groups, flags and group-stage fixtures loaded. Existing picks were cleared. Kickoff times are stored in Polish time (CEST).');
 }
 
 seed().then(() => process.exit(0)).catch((err) => {
