@@ -138,6 +138,15 @@ function slotPlaceholder(slot) {
   return slot;
 }
 
+// Etykieta slotu W../L.. gdy zwycięzca/przegrany nie jest jeszcze znany:
+// jeśli obie drużyny poprzedniego meczu są już ustalone, pokazujemy "A/B",
+// w innym wypadku spadamy do "Zwycięzca M.." / "Przegrany M..".
+function slotLabelFromPrev(slot, byNo) {
+  const prev = byNo.get(Number(slot.slice(1)));
+  if (prev && prev.homeTeam && prev.awayTeam) return `${prev.homeTeam.name}/${prev.awayTeam.name}`;
+  return slotPlaceholder(slot);
+}
+
 // Wspólna drabinka pucharowa.
 // Drużyny w 1/16 są stałe (R32_PAIRS), a awans w kolejnych rundach wynika WYŁĄCZNIE
 // z rzeczywistych wyników wpisanych przez admina (knockout_results) - nigdy z typów
@@ -184,9 +193,9 @@ async function buildKnockout(userId = null) {
     const pick = pickRow ? { home_score: pickRow.home_score, away_score: pickRow.away_score } : null;
 
     const homeLabel = homeTeam ? homeTeam.name
-      : (spec.no <= 88 ? (R32_PAIRS[spec.no]?.[0] || spec.homeSlot) : slotPlaceholder(spec.homeSlot));
+      : (spec.no <= 88 ? (R32_PAIRS[spec.no]?.[0] || spec.homeSlot) : slotLabelFromPrev(spec.homeSlot, byNo));
     const awayLabel = awayTeam ? awayTeam.name
-      : (spec.no <= 88 ? (R32_PAIRS[spec.no]?.[1] || spec.awaySlot) : slotPlaceholder(spec.awaySlot));
+      : (spec.no <= 88 ? (R32_PAIRS[spec.no]?.[1] || spec.awaySlot) : slotLabelFromPrev(spec.awaySlot, byNo));
 
     const known = !!(homeTeam && awayTeam);
     const editable = known && !result && !locked;

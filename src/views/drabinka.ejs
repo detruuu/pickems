@@ -7,7 +7,6 @@ function formatKickoff(str) {
   const dateParts = parts[0].split("-");
   if (dateParts.length < 3) return str;
   let time = parts[1];
-  if (time === "00:00") time = "18:00";
   return dateParts[2] + "." + dateParts[1] + " " + time;
 }
 
@@ -176,17 +175,26 @@ if (typeof rounds !== 'undefined') {
   }
   
   .score-box {
-    width: 32px;
+    min-width: 52px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
-    font-size: 14px;
-    background: #f8fafc;
-    border-left: 1px solid #e2e8f0;
+    gap: 3px;
+    background: transparent;
+    border-left: 1px solid rgba(15, 23, 42, 0.08);
     margin: -8px -10px -8px 0;
-    color: #475569;
+    padding: 0 6px;
+  }
+  .score-box .big {
+    font-weight: 800;
+    font-size: 15px;
+    color: #0f172a;
+  }
+  .score-box .small {
+    font-weight: 700;
+    font-size: 10px;
+    color: #64748b;
   }
   
   /* Winner & Loser visual indicators */
@@ -194,10 +202,13 @@ if (typeof rounds !== 'undefined') {
     color: #0f172a;
     font-weight: 800;
   }
-  .winner .score-box {
-    background: #f0fdf4;
+  /* Kolor świeci na drużynie obstawionej przez gracza na zwycięzcę:
+     zielono = trafiony zwycięzca, czerwono = nietrafiony. */
+  .pick-correct .big {
     color: #15803d;
-    border-left-color: #bbf7d0;
+  }
+  .pick-wrong .big {
+    color: #b91c1c;
   }
   .loser {
     opacity: 0.55;
@@ -233,7 +244,13 @@ if (typeof rounds !== 'undefined') {
     <% } else { %>
       <h1>Drabinka pucharowa MŚ 2026<%= readonly ? ' (podgląd użytkownika ' + viewingUser.name + ')' : '' %></h1>
       <p class="muted">
-        Wspólna drabinka dla wszystkich graczy. Drużyny i awans wynikają z rzeczywistych wyników wpisywanych przez admina, a nie z typów. Wpisane wyniki i zwycięzców widać na kartach meczów.
+        Wspólna drabinka dla wszystkich graczy. O awansie decydują rzeczywiste wyniki admina, nie typy. Na karcie: <strong>duża liczba = <%= readonly ? 'typ ' + viewingUser.name : 'Twój typ' %></strong>, mała liczba w nawiasie = prawdziwy wynik.
+      </p>
+      <p class="muted" style="font-size: 12px; margin-top: -8px;">
+        Kolor karty (jak w fazie grupowej):
+        <span style="background: rgba(34,197,94,0.45); padding: 1px 6px; border-radius: 4px;">mocny zielony = trafiony wynik</span>
+        <span style="background: rgba(187,247,208,0.50); padding: 1px 6px; border-radius: 4px;">jasny zielony = trafiony zwycięzca</span>
+        <span style="background: rgba(254,226,226,0.65); padding: 1px 6px; border-radius: 4px;">czerwony = pudło</span>
       </p>
     <% } %>
   </div>
@@ -273,14 +290,28 @@ if (typeof rounds !== 'undefined') {
                   const res = match.result;
                   const isHomeWinner = res && res.home_score > res.away_score;
                   const isAwayWinner = res && res.away_score > res.home_score;
+                  let cardBg = "";
+                  let homePickClass = "", awayPickClass = "";
+                  if (!isOfficial && res) {
+                    if (match.pick) {
+                      if (match.points === 2) cardBg = "background-color: rgba(34, 197, 94, 0.45);";
+                      else if (match.points === 1) cardBg = "background-color: rgba(187, 247, 208, 0.50);";
+                      else cardBg = "background-color: rgba(254, 226, 226, 0.65);";
+                      const pickCls = match.points >= 1 ? "pick-correct" : "pick-wrong";
+                      if (match.pick.home_score > match.pick.away_score) homePickClass = pickCls;
+                      else if (match.pick.away_score > match.pick.home_score) awayPickClass = pickCls;
+                    } else {
+                      cardBg = "background-color: rgba(254, 226, 226, 0.35);";
+                    }
+                  }
                 %>
-                <div class="match-card">
+                <div class="match-card" style="<%= cardBg %>">
                   <div class="match-card-meta">
                     <span>M<%= match.no %></span>
                     <span><%= formatKickoff(match.kickoff_at) %></span>
                   </div>
                   
-                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %> <%= homePickClass %>">
                     <div class="team-info">
                       <% if (match.homeTeam && match.homeTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
@@ -289,10 +320,10 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.home_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.home_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.home_score %>)</span><% } %><% } %></div>
                   </div>
                   
-                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %> <%= awayPickClass %>">
                     <div class="team-info">
                       <% if (match.awayTeam && match.awayTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
@@ -301,7 +332,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.away_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.away_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.away_score %>)</span><% } %><% } %></div>
                   </div>
                 </div>
               <% } %>
@@ -320,14 +351,28 @@ if (typeof rounds !== 'undefined') {
                   const res = match.result;
                   const isHomeWinner = res && res.home_score > res.away_score;
                   const isAwayWinner = res && res.away_score > res.home_score;
+                  let cardBg = "";
+                  let homePickClass = "", awayPickClass = "";
+                  if (!isOfficial && res) {
+                    if (match.pick) {
+                      if (match.points === 2) cardBg = "background-color: rgba(34, 197, 94, 0.45);";
+                      else if (match.points === 1) cardBg = "background-color: rgba(187, 247, 208, 0.50);";
+                      else cardBg = "background-color: rgba(254, 226, 226, 0.65);";
+                      const pickCls = match.points >= 1 ? "pick-correct" : "pick-wrong";
+                      if (match.pick.home_score > match.pick.away_score) homePickClass = pickCls;
+                      else if (match.pick.away_score > match.pick.home_score) awayPickClass = pickCls;
+                    } else {
+                      cardBg = "background-color: rgba(254, 226, 226, 0.35);";
+                    }
+                  }
                 %>
-                <div class="match-card">
+                <div class="match-card" style="<%= cardBg %>">
                   <div class="match-card-meta">
                     <span>M<%= match.no %></span>
                     <span><%= formatKickoff(match.kickoff_at) %></span>
                   </div>
                   
-                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %> <%= homePickClass %>">
                     <div class="team-info">
                       <% if (match.homeTeam && match.homeTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
@@ -336,10 +381,10 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.home_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.home_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.home_score %>)</span><% } %><% } %></div>
                   </div>
                   
-                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %> <%= awayPickClass %>">
                     <div class="team-info">
                       <% if (match.awayTeam && match.awayTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
@@ -348,7 +393,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.away_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.away_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.away_score %>)</span><% } %><% } %></div>
                   </div>
                 </div>
               <% } %>
@@ -367,14 +412,28 @@ if (typeof rounds !== 'undefined') {
                   const res = match.result;
                   const isHomeWinner = res && res.home_score > res.away_score;
                   const isAwayWinner = res && res.away_score > res.home_score;
+                  let cardBg = "";
+                  let homePickClass = "", awayPickClass = "";
+                  if (!isOfficial && res) {
+                    if (match.pick) {
+                      if (match.points === 2) cardBg = "background-color: rgba(34, 197, 94, 0.45);";
+                      else if (match.points === 1) cardBg = "background-color: rgba(187, 247, 208, 0.50);";
+                      else cardBg = "background-color: rgba(254, 226, 226, 0.65);";
+                      const pickCls = match.points >= 1 ? "pick-correct" : "pick-wrong";
+                      if (match.pick.home_score > match.pick.away_score) homePickClass = pickCls;
+                      else if (match.pick.away_score > match.pick.home_score) awayPickClass = pickCls;
+                    } else {
+                      cardBg = "background-color: rgba(254, 226, 226, 0.35);";
+                    }
+                  }
                 %>
-                <div class="match-card">
+                <div class="match-card" style="<%= cardBg %>">
                   <div class="match-card-meta">
                     <span>M<%= match.no %></span>
                     <span><%= formatKickoff(match.kickoff_at) %></span>
                   </div>
                   
-                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %> <%= homePickClass %>">
                     <div class="team-info">
                       <% if (match.homeTeam && match.homeTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
@@ -383,10 +442,10 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.home_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.home_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.home_score %>)</span><% } %><% } %></div>
                   </div>
                   
-                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %> <%= awayPickClass %>">
                     <div class="team-info">
                       <% if (match.awayTeam && match.awayTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
@@ -395,7 +454,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.away_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.away_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.away_score %>)</span><% } %><% } %></div>
                   </div>
                 </div>
               <% } %>
@@ -414,14 +473,28 @@ if (typeof rounds !== 'undefined') {
                   const res = match.result;
                   const isHomeWinner = res && res.home_score > res.away_score;
                   const isAwayWinner = res && res.away_score > res.home_score;
+                  let cardBg = "";
+                  let homePickClass = "", awayPickClass = "";
+                  if (!isOfficial && res) {
+                    if (match.pick) {
+                      if (match.points === 2) cardBg = "background-color: rgba(34, 197, 94, 0.45);";
+                      else if (match.points === 1) cardBg = "background-color: rgba(187, 247, 208, 0.50);";
+                      else cardBg = "background-color: rgba(254, 226, 226, 0.65);";
+                      const pickCls = match.points >= 1 ? "pick-correct" : "pick-wrong";
+                      if (match.pick.home_score > match.pick.away_score) homePickClass = pickCls;
+                      else if (match.pick.away_score > match.pick.home_score) awayPickClass = pickCls;
+                    } else {
+                      cardBg = "background-color: rgba(254, 226, 226, 0.35);";
+                    }
+                  }
                 %>
-                <div class="match-card">
+                <div class="match-card" style="<%= cardBg %>">
                   <div class="match-card-meta">
                     <span>M<%= match.no %></span>
                     <span><%= formatKickoff(match.kickoff_at) %></span>
                   </div>
                   
-                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %> <%= homePickClass %>">
                     <div class="team-info">
                       <% if (match.homeTeam && match.homeTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
@@ -430,10 +503,10 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.home_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.home_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.home_score %>)</span><% } %><% } %></div>
                   </div>
                   
-                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %> <%= awayPickClass %>">
                     <div class="team-info">
                       <% if (match.awayTeam && match.awayTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
@@ -442,7 +515,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.away_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.away_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.away_score %>)</span><% } %><% } %></div>
                   </div>
                 </div>
               <% } %>
@@ -462,8 +535,22 @@ if (typeof rounds !== 'undefined') {
                   const res = match.result;
                   const isHomeWinner = res && res.home_score > res.away_score;
                   const isAwayWinner = res && res.away_score > res.home_score;
+                  let cardBg = "";
+                  let homePickClass = "", awayPickClass = "";
+                  if (!isOfficial && res) {
+                    if (match.pick) {
+                      if (match.points === 2) cardBg = "background-color: rgba(34, 197, 94, 0.45);";
+                      else if (match.points === 1) cardBg = "background-color: rgba(187, 247, 208, 0.50);";
+                      else cardBg = "background-color: rgba(254, 226, 226, 0.65);";
+                      const pickCls = match.points >= 1 ? "pick-correct" : "pick-wrong";
+                      if (match.pick.home_score > match.pick.away_score) homePickClass = pickCls;
+                      else if (match.pick.away_score > match.pick.home_score) awayPickClass = pickCls;
+                    } else {
+                      cardBg = "background-color: rgba(254, 226, 226, 0.35);";
+                    }
+                  }
                 %>
-                <div class="match-card" style="<%= isFinal ? 'border: 2px solid #eab308; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%);' : '' %>">
+                <div class="match-card" style="<%= isFinal ? 'border: 2px solid #eab308; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%);' : '' %> <%= cardBg %>">
                   <% if (isFinal) { %>
                     <span class="champion-badge">Finał</span>
                   <% } %>
@@ -472,7 +559,7 @@ if (typeof rounds !== 'undefined') {
                     <span><%= formatKickoff(match.kickoff_at) %></span>
                   </div>
                   
-                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isHomeWinner ? 'winner' : '' %> <%= isAwayWinner ? 'loser' : '' %> <%= homePickClass %>">
                     <div class="team-info">
                       <% if (match.homeTeam && match.homeTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.homeTeam.flag %>.png" alt="">
@@ -481,10 +568,10 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.homeLabel %>"><%= shortenLabel(match.homeLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.home_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.home_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.home_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.home_score %>)</span><% } %><% } %></div>
                   </div>
                   
-                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %>">
+                  <div class="team-row <%= isAwayWinner ? 'winner' : '' %> <%= isHomeWinner ? 'loser' : '' %> <%= awayPickClass %>">
                     <div class="team-info">
                       <% if (match.awayTeam && match.awayTeam.flag) { %>
                         <img class="team-flag" src="https://flagcdn.com/w40/<%= match.awayTeam.flag %>.png" alt="">
@@ -493,7 +580,7 @@ if (typeof rounds !== 'undefined') {
                       <% } %>
                       <span class="team-name" title="<%= match.awayLabel %>"><%= shortenLabel(match.awayLabel) %></span>
                     </div>
-                    <div class="score-box"><%= match.result ? match.result.away_score : '-' %></div>
+                    <div class="score-box"><% if (isOfficial) { %><span class="big"><%= match.result ? match.result.away_score : '-' %></span><% } else { %><span class="big"><%= match.pick ? match.pick.away_score : '-' %></span><% if (match.result) { %><span class="small">(<%= match.result.away_score %>)</span><% } %><% } %></div>
                   </div>
                 </div>
               <% } %>

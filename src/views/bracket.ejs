@@ -7,7 +7,6 @@ function formatKickoff(str) {
   const dateParts = parts[0].split("-");
   if (dateParts.length < 3) return str;
   let time = parts[1];
-  if (time === "00:00") time = "18:00";
   return dateParts[2] + "." + dateParts[1] + " " + time;
 }
 const readonly = typeof viewingUser !== "undefined" && viewingUser !== null;
